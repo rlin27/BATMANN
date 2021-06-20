@@ -52,14 +52,14 @@ parser.add_argument(
     type=int,
     default=5,
     help='Number of samples per class.')
-    
+
 # data sampling for training data
 parser.add_argument(
     '--pool_query_train',
     type=int,
     default=10,
     help='(Training phase) Number of samples that will be reserved for sampling queries')
-    
+
 parser.add_argument(
     '--pool_val_train',
     type=int,
@@ -71,13 +71,13 @@ parser.add_argument(
     type=int,
     default=15,
     help='(Training phase) Number of queries per class.')
-    
+
 parser.add_argument(
     '--val_num_train',
     type=int,
     default=3,
     help='(Training phase) Number of samples used to do validation.')
-    
+
 # data sampling for testing data
 parser.add_argument(
     '--pool_query_test',
@@ -90,14 +90,14 @@ parser.add_argument(
     type=int,
     default=15,
     help='(Inference phase) Number of queries per class.')
-    
+
 # episode & log interval
 parser.add_argument(
     '--train_episode',
     type=int,
     default=1000,
     help='Number of episode to train the controller.')
-    
+
 parser.add_argument(
     '--log_interval',
     type=int,
@@ -134,8 +134,23 @@ parser.add_argument(
     '--quantization',
     type=int,
     default=0,
+    choices={0, 1},
     help='Binarize the Controller or not.')
-    
+
+# test pretrain or not
+parser.add_argument(
+    '--test_only',
+    type=int,
+    default=0,
+    choices={0, 1},
+    help='Use a pretrained Controller or not.')
+
+parser.add_argument(
+    '--pretrained_dir',
+    type=str,
+    default=None,
+    help='The path to the pretrained ckpt.')
+
 # gpu
 parser.add_argument(
     '--gpu',
@@ -192,119 +207,129 @@ def main():
             device_id.append(i)
         controller = nn.DataParallel(controller, device_ids=device_id).cuda()
 
-    # define the optimizer
-    optimizer = torch.optim.Adam(controller.parameters(), lr=args.learning_rate)
-    lr_scheduler = StepLR(optimizer, step_size=100000, gamma=0.5)
+    if args.test_only == 0:
+        # define the optimizer
+        optimizer = torch.optim.Adam(controller.parameters(), lr=args.learning_rate)
+        lr_scheduler = StepLR(optimizer, step_size=100000, gamma=0.5)
 
-    # build graph
-    logger.info("========> Training...")
+        # build graph
+        logger.info("========> Training...")
 
-    last_accuracy = 0.0
+        last_accuracy = 0.0
 
-    # loss function
-    criterion = nn.CrossEntropyLoss()
-    criterion = criterion.cuda()
+        # loss function
+        criterion = nn.CrossEntropyLoss()
+        criterion = criterion.cuda()
 
-    total_rewards1 = 0
+        total_rewards1 = 0
 
-    # train
-    for episode in range(args.train_episode):
+        # train
+        for episode in range(args.train_episode):
 
-        # init dataset
-        # sample_dataloader: obtain previous samples for compare
-        # batch_dataloader: batch samples for training
-        degrees = random.choice([0, 90, 180, 270])  # data augmentation
-        task_train = OmniglotTask(manntrain_character_folders, args.class_num, args.num_shot, args.pool_query_train,
-                                  val_num=args.pool_val_train)
-        support_dataloader = get_data_loader(task_train, num_per_class=args.num_shot, split='train',
-                                             shuffle=False, rotation=degrees)
-        query_dataloader = get_data_loader(task_train, num_per_class=args.batch_size_train, split='query',
-                                           shuffle=True, rotation=degrees)
+            # init dataset
+            # sample_dataloader: obtain previous samples for compare
+            # batch_dataloader: batch samples for training
+            degrees = random.choice([0, 90, 180, 270])  # data augmentation
+            task_train = OmniglotTask(manntrain_character_folders, args.class_num, args.num_shot, args.pool_query_train,
+                                      val_num=args.pool_val_train)
+            support_dataloader = get_data_loader(task_train, num_per_class=args.num_shot, split='train',
+                                                 shuffle=False, rotation=degrees)
+            query_dataloader = get_data_loader(task_train, num_per_class=args.batch_size_train, split='query',
+                                               shuffle=True, rotation=degrees)
 
-        # sample data
-        supports, supports_labels = support_dataloader.__iter__().next()
-        queries, queries_labels = query_dataloader.__iter__().next()
-        queries_labels = queries_labels.cuda()
+            # sample data
+            supports, supports_labels = support_dataloader.__iter__().next()
+            queries, queries_labels = query_dataloader.__iter__().next()
+            queries_labels = queries_labels.cuda()
 
-        # calculate features
-        supports_features = controller(Variable(supports).cuda())  # will be stored in the key memory
-        queries_features = controller(Variable(queries).cuda())
-        
-        # quantization
-        if args.quantization == 1:
-            supports_features = torch.sign(supports_features)
+            # calculate features
+            supports_features = controller(Variable(supports).cuda())  # will be stored in the key memory
+            queries_features = controller(Variable(queries).cuda())
 
-        # add(rewrite) memory-augmented memory
-        kv_mem = KeyValueMemory(supports_features, supports_labels)
-        kv = kv_mem.kv
+            # quantization
+            if args.quantization == 1:
+                supports_features = torch.sign(supports_features)
 
-        # predict
-        prediction1 = sim_comp(kv, queries_features)
-        
-        predict_labels1 = torch.argmax(prediction1.data, 1).cuda()
-        rewards1 = [1 if predict_labels1[j] == queries_labels[j] else 0 for j in range(args.class_num)]
-        total_rewards1 += np.sum(rewards1)
-        loss = criterion(prediction1, queries_labels.cuda())
+            # add(rewrite) memory-augmented memory
+            kv_mem = KeyValueMemory(supports_features, supports_labels)
+            kv = kv_mem.kv
 
-        # Update
-        controller.zero_grad()
-        loss.backward()
-        optimizer.step()
-        lr_scheduler.step()
+            # predict
+            prediction1 = sim_comp(kv, queries_features)
 
-        # log the training process
-        if (episode + 1) % args.log_interval == 0:
-            logger.info('episode:{}, loss:{:.2f}'.format(episode + 1, loss.item()))
+            predict_labels1 = torch.argmax(prediction1.data, 1).cuda()
+            rewards1 = [1 if predict_labels1[j] == queries_labels[j] else 0 for j in range(args.class_num)]
+            total_rewards1 += np.sum(rewards1)
+            loss = criterion(prediction1, queries_labels.cuda())
 
-        # validation
-        if (episode + 1) % args.val_interval == 0:
+            # Update
+            controller.zero_grad()
+            loss.backward()
+            optimizer.step()
+            lr_scheduler.step()
 
-            logger.info('-------- Validation --------')
-            total_rewards2 = 0
+            # log the training process
+            if (episode + 1) % args.log_interval == 0:
+                logger.info('episode:{}, loss:{:.2f}'.format(episode + 1, loss.item()))
 
-            for i in range(args.val_episode):
-                degrees = random.choice([0, 90, 180, 270])
-                val_dataloader = get_data_loader(task_train, num_per_class=args.val_num_train, split='val', shuffle=True,
-                                                 rotation=degrees)
+            # validation
+            if (episode + 1) % args.val_interval == 0:
 
-                val_images, val_labels = val_dataloader.__iter__().next()
-                val_labels = val_labels.cuda()
+                logger.info('-------- Validation --------')
+                total_rewards2 = 0
 
-                # calculate features
-                val_features = controller(Variable(val_images).cuda())
+                for i in range(args.val_episode):
+                    degrees = random.choice([0, 90, 180, 270])
+                    val_dataloader = get_data_loader(task_train, num_per_class=args.val_num_train, split='val',
+                                                     shuffle=True,
+                                                     rotation=degrees)
 
-                # predict
-                prediction2 = sim_comp(kv, val_features)
-                predict_labels2 = torch.argmax(prediction2.data, 1).cuda()
-                rewards2 = [1 if predict_labels2[j] == val_labels[j] else 0 for j in range(args.class_num)]
-                total_rewards2 += np.sum(rewards2)
+                    val_images, val_labels = val_dataloader.__iter__().next()
+                    val_labels = val_labels.cuda()
 
-            val_accuracy = total_rewards2 / 1.0 / args.class_num / args.val_episode
-            logger.info('Validation accuracy: {:.2f}%.'.format(val_accuracy * 100))
+                    # calculate features
+                    val_features = controller(Variable(val_images).cuda())
 
-            # save the best performance controller
-            if val_accuracy > last_accuracy:
-                torch.save({'state_dict': controller.state_dict()}, "%s/model_best.pth" % args.log_dir)
-                logger.info('Save controller for episode: {}.'.format(episode + 1))
-                last_accuracy = val_accuracy  
-            logger.info('----------------------------')
+                    # predict
+                    prediction2 = sim_comp(kv, val_features)
+                    predict_labels2 = torch.argmax(prediction2.data, 1).cuda()
+                    rewards2 = [1 if predict_labels2[j] == val_labels[j] else 0 for j in range(args.class_num)]
+                    total_rewards2 += np.sum(rewards2)
 
-    train_accuracy = total_rewards1 / 1.0 / args.class_num / args.train_episode
-    logger.info(' ')
-    logger.info('========> Training finished!')
-    logger.info('Training accuracy: {:.2f}%.'.format(train_accuracy * 100))
-    logger.info(' ')
+                val_accuracy = total_rewards2 / 1.0 / args.class_num / args.val_episode
+                logger.info('Validation accuracy: {:.2f}%.'.format(val_accuracy * 100))
 
-    # Test (Training finished)
-    logger.info('========> Use the best performance Controller to test...')
-    ckpt = torch.load(os.path.join(args.log_dir, 'model_best.pth'))
-    controller.load_state_dict(ckpt['state_dict'])
-    
-    total_rewards3 = 0
-    
+                # save the best performance controller
+                if val_accuracy > last_accuracy:
+                    torch.save({'state_dict': controller.state_dict()}, "%s/model_best.pth" % args.log_dir)
+                    logger.info('Save controller for episode: {}.'.format(episode + 1))
+                    last_accuracy = val_accuracy
+                logger.info('----------------------------')
+
+        train_accuracy = total_rewards1 / 1.0 / args.class_num / args.train_episode
+        logger.info(' ')
+        logger.info('========> Training finished!')
+        logger.info('Training accuracy: {:.2f}%.'.format(train_accuracy * 100))
+        logger.info(' ')
+
+    if args.test_only == 0:
+        # Test (Training finished)
+        total_rewards3 = 0
+        logger.info('========> Use the best performance Controller to test...')
+        ckpt = torch.load(os.path.join(args.log_dir, 'model_best.pth'))
+        controller.load_state_dict(ckpt['state_dict'])
+
+    if args.test_only == 1:
+        # Test (Use pretrained parameters)
+        total_rewards3 = 0
+        logger.info('========> Use a pretrained Controller to test...')
+        ckpt = torch.load(args.pretrained_dir)
+        controller.load_state_dict(ckpt['state_dict'])
+
     for i in range(args.test_episode):
         degrees = random.choice([0, 90, 180, 270])
-        task_test = OmniglotTask(manntest_character_folders, args.class_num, args.num_shot, args.pool_query_test, val_num=0)
+        task_test = OmniglotTask(manntest_character_folders, args.class_num, args.num_shot, args.pool_query_test,
+                                 val_num=0)
         support_dataloader2 = get_data_loader(task_test, num_per_class=args.num_shot, split='train', shuffle=False,
                                               rotation=degrees)  # support vectors for testing / validation
         query_dataloader2 = get_data_loader(task_test, num_per_class=args.batch_size_test, split='query', shuffle=True,
