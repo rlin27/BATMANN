@@ -17,4 +17,6 @@ python main.py \
 --test_episode 1000 \
 --learning_rate 0.0001 \
 --quantization 1 \
+--test_only 0 \
+--pretrained_dir None \
 --gpu 2,3 
