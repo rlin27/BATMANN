@@ -27,6 +27,12 @@ parser.add_argument(
     type=str,
     help='The path to store the training log file.')
 
+# data path
+parser.add_argument(
+    '--data_dir',
+    type=str,
+    help='The path to the dataset, shold be a absolute path')
+
 # controller structure
 parser.add_argument(
     '--input_channel',
@@ -194,7 +200,7 @@ def main():
     # init the data folder ...
     logger.info("========> Initialize data folders...")
     # init character folders for dataset construction
-    manntrain_character_folders, manntest_character_folders = omniglot_character_folders()
+    manntrain_character_folders, manntest_character_folders = omniglot_character_folders(data_path=args.data_dir)
 
     # init the controller ...
     logger.info("========> Build and Initialize the Controller...")

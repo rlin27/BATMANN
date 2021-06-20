@@ -1,5 +1,6 @@
 python main.py \
 --log_dir ./log_full_precision \
+--data_dir /mnt/nfsdisk/jier/4_MANN/mann_hdv/data \
 --input_channel 1 \
 --feature_dim 512 \
 --class_num 20 \

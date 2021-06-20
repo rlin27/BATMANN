@@ -18,8 +18,8 @@ class Rotate(object):
         return x
 
 
-def omniglot_character_folders():
-    data_folder = r'/mnt/nfsdisk/jier/4_MANN/mann_hdv/data'  # I may add a args here
+def omniglot_character_folders(data_path):
+    data_folder = data_path  # I may add a args here
 
     # 1) for family in os.listdir(data_folder): all folders under the data_folder, each folder is a 'family'
     # 2) if os.path.isdir(os.path.join(data_folder, family)): ./data/[family]

@@ -1,6 +1,7 @@
 # check the full-precision one
 python main.py \
 --log_dir ./log_check_pretrained/full_precision \
+--data_dir /mnt/nfsdisk/jier/4_MANN/mann_hdv/data \
 --input_channel 1 \
 --feature_dim 512 \
 --class_num 20 \
@@ -16,6 +17,7 @@ python main.py \
 # check the binary one
 python main.py \
 --log_dir ./log_check_pretrained/binary \
+--data_dir /mnt/nfsdisk/jier/4_MANN/mann_hdv/data \
 --input_channel 1 \
 --feature_dim 512 \
 --class_num 20 \
