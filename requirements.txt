@@ -1,0 +1,57 @@
+backcall==0.2.0
+blessings==1.7
+certifi==2021.5.30
+cycler==0.10.0
+decorator==4.4.2
+dos2unix==1
+future==0.18.2
+gpustat==0.6.0
+imageio==2.9.0
+importlib-metadata @ file:///home/conda/feedstock_root/build_artifacts/importlib-metadata_1610355166636/work
+ipykernel==5.3.2
+ipython==7.21.0
+ipython-genutils==0.2.0
+jedi==0.18.0
+joblib==1.0.1
+jupyter-client==6.1.11
+jupyter-core==4.7.1
+kiwisolver @ file:///home/conda/feedstock_root/build_artifacts/kiwisolver_1604322297326/work
+Markdown @ file:///home/conda/feedstock_root/build_artifacts/markdown_1603668500820/work
+matplotlib==3.2.2
+mkl-fft==1.2.0
+mkl-random==1.1.1
+mkl-service==2.3.0
+networkx==2.5
+numpy==1.18.5
+nvidia-ml-py3==7.352.0
+olefile==0.46
+parso==0.8.1
+pexpect==4.8.0
+pickleshare==0.7.5
+Pillow @ file:///tmp/build/80754af9/pillow_1609786740831/work
+prompt-toolkit==3.0.16
+psutil==5.8.0
+ptyprocess==0.7.0
+Pygments==2.8.1
+pyparsing==2.4.7
+python-dateutil==2.8.1
+python-markdown-math @ file:///home/conda/feedstock_root/build_artifacts/python-markdown-math_1605153801060/work
+pytorch-ignite==0.4.4
+PyWavelets==1.1.1
+pyzmq==22.0.3
+scikit-image==0.17.2
+scikit-learn==0.23.1
+scipy==1.4.1
+six @ file:///tmp/build/80754af9/six_1605205313296/work
+sklearn==0.0
+threadpoolctl==2.1.0
+tifffile==2021.3.5
+torch==1.2.0+cu92
+torchaudio==0.7.0a0+a853dff
+torchvision==0.4.0+cu92
+tornado @ file:///home/conda/feedstock_root/build_artifacts/tornado_1604105014127/work
+tqdm==4.47.0
+traitlets==5.0.5
+typing-extensions @ file:///home/ktietz/src/ci_mi/typing_extensions_1612808209620/work
+wcwidth==0.2.5
+zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1603668650351/work
