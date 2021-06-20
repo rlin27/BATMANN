@@ -229,7 +229,9 @@ def main():
 
         total_rewards1 = 0
 
-        # train
+        ######################
+        #     Train
+        ######################
         for episode in range(args.train_episode):
 
             # init dataset
@@ -242,7 +244,9 @@ def main():
                                                  shuffle=False, rotation=degrees)
             query_dataloader = get_data_loader(task_train, num_per_class=args.batch_size_train, split='query',
                                                shuffle=True, rotation=degrees)
-
+            val_dataloader = get_data_loader(task_train, num_per_class=args.val_num_train, split='val',
+                                             shuffle=True,
+                                             rotation=degrees)
             # sample data
             supports, supports_labels = support_dataloader.__iter__().next()
             queries, queries_labels = query_dataloader.__iter__().next()
@@ -264,7 +268,8 @@ def main():
             prediction1 = sim_comp(kv, queries_features)
 
             predict_labels1 = torch.argmax(prediction1.data, 1).cuda()
-            rewards1 = [1 if predict_labels1[j] == queries_labels[j] else 0 for j in range(args.class_num)]
+            rewards1 = [1 if predict_labels1[j] == queries_labels[j]
+                        else 0 for j in range(args.class_num * args.batch_size_train)]
             total_rewards1 += np.sum(rewards1)
             loss = criterion(prediction1, queries_labels.cuda())
 
@@ -278,7 +283,9 @@ def main():
             if (episode + 1) % args.log_interval == 0:
                 logger.info('episode:{}, loss:{:.2f}'.format(episode + 1, loss.item()))
 
-            # validation
+            ######################
+            #     Validation
+            ######################
             if (episode + 1) % args.val_interval == 0:
 
                 logger.info('-------- Validation --------')
@@ -286,9 +293,6 @@ def main():
 
                 for i in range(args.val_episode):
                     degrees = random.choice([0, 90, 180, 270])
-                    val_dataloader = get_data_loader(task_train, num_per_class=args.val_num_train, split='val',
-                                                     shuffle=True,
-                                                     rotation=degrees)
 
                     val_images, val_labels = val_dataloader.__iter__().next()
                     val_labels = val_labels.cuda()
@@ -296,13 +300,18 @@ def main():
                     # calculate features
                     val_features = controller(Variable(val_images).cuda())
 
+                    # quantization
+                    if args.quantization == 1:
+                        val_features = torch.sign(val_features)
+
                     # predict
                     prediction2 = sim_comp(kv, val_features)
                     predict_labels2 = torch.argmax(prediction2.data, 1).cuda()
-                    rewards2 = [1 if predict_labels2[j] == val_labels[j] else 0 for j in range(args.class_num)]
+                    rewards2 = [1 if predict_labels2[j] == val_labels[j]
+                                else 0 for j in range(args.class_num * args.val_num_train)]
                     total_rewards2 += np.sum(rewards2)
 
-                val_accuracy = total_rewards2 / 1.0 / args.class_num / args.val_episode
+                val_accuracy = total_rewards2 / 1.0 / (args.val_episode * args.class_num * args.val_num_train)
                 logger.info('Validation accuracy: {:.2f}%.'.format(val_accuracy * 100))
 
                 # save the best performance controller
@@ -312,12 +321,15 @@ def main():
                     last_accuracy = val_accuracy
                 logger.info('----------------------------')
 
-        train_accuracy = total_rewards1 / 1.0 / args.class_num / args.train_episode
+        train_accuracy = total_rewards1 / 1.0 / (args.train_episode * args.class_num * args.batch_size_train)
         logger.info(' ')
         logger.info('========> Training finished!')
         logger.info('Training accuracy: {:.2f}%.'.format(train_accuracy * 100))
         logger.info(' ')
 
+    ######################
+    #        Test
+    ######################
     if args.test_only == 0:
         # Test (Training finished)
         total_rewards3 = 0
@@ -349,6 +361,10 @@ def main():
         supports_features2 = controller(Variable(supports_images2).cuda())
         queries_features2 = controller(Variable(queries_images2).cuda())
 
+        # quantization
+        if args.quantization == 1:
+            supports_features2 = torch.sign(supports_features2)
+
         # add(rewrite) memory-augmented memory
         kv_mem = KeyValueMemory(supports_features2, supports_labels2)
         kv = kv_mem.kv
@@ -356,10 +372,11 @@ def main():
         # predict
         prediction3 = sim_comp(kv, queries_features2)
         predict_labels3 = torch.argmax(prediction3.data, 1).cuda()
-        rewards3 = [1 if predict_labels3[j] == queries_labels2[j] else 0 for j in range(args.class_num)]
+        rewards3 = [1 if predict_labels3[j] == queries_labels2[j]
+                    else 0 for j in range(args.class_num * args.batch_size_test)]
         total_rewards3 += np.sum(rewards3)
 
-    test_accuracy = total_rewards3 / 1.0 / args.class_num / args.test_episode
+    test_accuracy = total_rewards3 / 1.0 / (args.test_episode * args.class_num * args.batch_size_test)
     logger.info('Testing accuracy: {:.2f}%.'.format(test_accuracy * 100))
 
 
