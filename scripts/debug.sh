@@ -1,0 +1,11 @@
+python main.py \
+--log_dir ./log_debug \
+--input_channel 1 \
+--feature_dim 512 \
+--class_num 5 \
+--num_shot 20 \
+--batch_size 32 \
+--train_episode 100 \
+--test_episode 100 \
+--learning_rate 0.001 \
+--gpu 0,1 \

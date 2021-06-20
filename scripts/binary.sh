@@ -1,0 +1,20 @@
+python main.py \
+--log_dir ./log_binary \
+--input_channel 1 \
+--feature_dim 512 \
+--class_num 20 \
+--num_shot 5 \
+--pool_query_train 10 \
+--pool_val_train 3 \
+--batch_size_train 4 \
+--val_num_train 3 \
+--pool_query_test 15 \
+--batch_size_test 4 \
+--train_episode 10000 \
+--log_interval 100 \
+--val_episode 250 \
+--val_interval 500 \
+--test_episode 1000 \
+--learning_rate 0.0001 \
+--quantization 1 \
+--gpu 2,3 
