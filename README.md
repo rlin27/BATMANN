@@ -75,14 +75,46 @@ python main.py \
 ```
 
 ## Experimental Results
+For clarification, we use the table below to show the setting details of different experiments. **The upper and lower parts are the details for learning and inference phases, respectively.** Binary-1 means the elements are selected in {-1, 1}. On the other hand, Binary-2 means the element only contains 0 and 1.
 
-| Problem | Full-Precision ([Nat Comm](https://doi.org/10.1038/s41467-021-22364-0)) | Full-Precision | Binary | 
-|:---:|:---:|:----:|:----:|
+| Settings | 1<span id="1"></span> | 2<span id="2"></span> | 3<span id="3"></span> |
+|:----:|:----:|:----:|:-----:|
+| (Similarity) Cosine | √ | √ | √ |
+| (Similarity) Dot | | | |
+| (Sharpening function) Regular abs  | | | |
+| (Sharpening function) Softabs| √ | √ | √ |
+| (Controller) Full-precision | √ | | |
+| (Controller) Binary-1 |  | √ | |
+| (Controller) Binary-2 | | | √ |
+| (Key vectors) Full-precision | √ | | |
+| (Key vectors) Binary-1 | | √ | |
+| (key vectors) Binary-2 | | | √ |
+| | | | |
+| (Similarity) Cosine | √ | √ | √ |
+| (Similarity) Dot | | | |
+| (Sharpening function) Regular abs  | | | |
+| (Sharpening function) Softabs| √ | √ | √ |
+| (Controller) Full-precision | √ | | |
+| (Controller) Binary-1 |  | √ | |
+| (Controller) Binary-2 | | | √ |
+| (Key vectors) Full-precision | √ | | |
+| (Key vectors) Binary-1 | | √ | |
+| (key vectors) Binary-2 | | | √ |
+
+### End-to-End full-precision and binarized MANN
++ The 2nd column is the results reported in the Supplementary Table II in the [Nat Comm paper](https://arxiv.org/pdf/2010.01939.pdf).
++ The 3rd column is the results obtained by our implementation. The Controller is trained in an end-to-end full-precision scheme. The weights and the features stored in the Key Memory are all in full-precision format.
++ The 4th column is the results obtained by our implemententaion. The Controller is trained in an end-to-end binarized ({-1,1}) scheme. The weights and features stored in the Key Memory are all in a binarized format ({-1,-1}). (Note: The first conv layer & the last fc layer are 8-bit, we use a sign function at the end to get the binarized outputs.)
+
+| Problem | Full-Precision ([Nat Comm](https://doi.org/10.1038/s41467-021-22364-0)) | Full-Precision[ (S1)](#1) | Binary-1[ (S2)](#2) | Binary-2[ (S3)](#3) |
+|:---:|:---:|:----:|:----:|:----:|
 | 5-way 1-shot | 97.44% | 95.25% ([ckpt](./log/log_full_precision_5_1/model_best.pth)) | 94.40% ([ckpt](./log/log_binary_5_1/model_best.pth)) |
 | 20-way 5-shot | 97.79% | 97.64% ([ckpt](./log/log_full_precision/model_best.pth)) | 95.11% ([ckpt](./log/log_binary/model_best.pth)) |
-| 100-way 5-shot | 93.97% |  |  |
+| 100-way 5-shot | 93.97% | 95.68% ([ckpt](./log/log_full_precision_100_5/model_best.pth)) | 94.32% ([ckpt](./log/log_binary_100_5/model_best.pth)) |
 
-More results will be available soon.
+### 
+
+More results will be available soon. 
 
 ## Acknowledgement
 This code is ispired by [LearningToCompare_FSL](https://github.com/floodsung/LearningToCompare_FSL). We thanks for this open-source implementations.
