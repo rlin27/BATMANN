@@ -320,6 +320,8 @@ def main():
                     logger.info('Save controller for episode: {}.'.format(episode + 1))
                     last_accuracy = val_accuracy
                 logger.info('----------------------------')
+        
+            del kv_mem
 
         train_accuracy = total_rewards1 / 1.0 / (args.train_episode * args.class_num * args.batch_size_train)
         logger.info(' ')
@@ -375,6 +377,8 @@ def main():
         rewards3 = [1 if predict_labels3[j] == queries_labels2[j]
                     else 0 for j in range(args.class_num * args.batch_size_test)]
         total_rewards3 += np.sum(rewards3)
+        
+        del kv_mem
 
     test_accuracy = total_rewards3 / 1.0 / (args.test_episode * args.class_num * args.batch_size_test)
     logger.info('Testing accuracy: {:.2f}%.'.format(test_accuracy * 100))
