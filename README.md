@@ -3,6 +3,14 @@
 This is a PyTorch implementation of the MANN described in [Robust high-dimensional memory-augmented
 neural networks](https://doi.org/10.1038/s41467-021-22364-0). In addition, we provide a binary version MANN, whose controller is trained as a binary neural network (BNN) in an end-to-end way, and the feature vectors stored in the key memory are binarized as well.
 
+## Codes Structure
+The two figures below illustrate the relations among different functions, which also help understand how the MANN work.
+
+### Data Loading
+![](./fig/dataloader.png)
+
+### Learn & Inference
+![](./fig/main.png)
 ## Running Codes
 In this code, you can run the MANN on omniglot dataset, obtaining a full-precision or a binarized mature Controller. We provide scripts in ``` ./scripts ``` and the checkpoints in ``` ./log ``` , which lead to easy running of our codes. 
 
@@ -66,25 +74,15 @@ python main.py \
 --gpu [ID of the GPU to use]
 ```
 
-## Codes Structure
-The two figures below illustrate the relations among different functions, which also help understand how the MANN work.
-
-### Data Loading
-![](./fig/dataloader.png)
-
-### Learn & Inference
-![](./fig/main.png)
-
 ## Experimental Results
 
-| Problem | Full-Precision | Binary |
-|:---:|:---:|:----:|
-| 5-way 1-shot | ~ | 94.40% |
-| 20-way 5-shot | 97.64% | 95.11% |
-| 100-way 5-shot |  | ~ |
+| Problem | Full-Precision ([Nat Comm](https://doi.org/10.1038/s41467-021-22364-0)) | Full-Precision | Binary | 
+|:---:|:---:|:----:|:----:|
+| 5-way 1-shot | 97.44% | 95.25% ([ckpt](./log/log_full_precision_5_1/model_best.pth)) | 94.40% ([ckpt](./log/log_binary_5_1/model_best.pth)) |
+| 20-way 5-shot | 97.79% | 97.64% ([ckpt](./log/log_full_precision/model_best.pth)) | 95.11% ([ckpt](./log/log_binary/model_best.pth)) |
+| 100-way 5-shot | 93.97% |  |  |
 
 More results will be available soon.
-
 
 ## Acknowledgement
 This code is ispired by [LearningToCompare_FSL](https://github.com/floodsung/LearningToCompare_FSL). We thanks for this open-source implementations.
