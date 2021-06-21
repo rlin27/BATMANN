@@ -75,9 +75,9 @@ python main.py \
 ```
 
 ## Experimental Results
-For clarification, we use the table below to show the setting details of different experiments. **The upper and lower parts are the details for learning and inference phases, respectively.** Binary-1 means the elements are selected in {-1, 1}. On the other hand, Binary-2 means the element only contains 0 and 1.
+For clarification, we use the table below to show the setting details of different experiments. **The upper and lower tables are the details for learning and inference phases, respectively.** Binary-1 means the elements are selected in {-1, 1}. On the other hand, Binary-2 means the element only contains 0 and 1.
 
-| Settings | 1<span id="1"></span> | 2<span id="2"></span> | 3<span id="3"></span> |
+| **Learning** Settings | 1<span id="1"></span> | 2<span id="2"></span> | 3<span id="3"></span> |
 |:----:|:----:|:----:|:-----:|
 | (Similarity) Cosine | √ | √ | √ |
 | (Similarity) Dot | | | |
@@ -89,7 +89,9 @@ For clarification, we use the table below to show the setting details of differe
 | (Key vectors) Full-precision | √ | | |
 | (Key vectors) Binary-1 | | √ | |
 | (key vectors) Binary-2 | | | √ |
-| | | | |
+
+| **Inference** Settings | 1<span id="1"></span> | 2<span id="2"></span> | 3<span id="3"></span> |
+|:----:|:----:|:----:|:-----:|
 | (Similarity) Cosine | √ | √ | √ |
 | (Similarity) Dot | | | |
 | (Sharpening function) Regular abs  | | | |
