@@ -1,0 +1,199 @@
+06/21 01:53:30 PM | args = Namespace(batch_size_test=4, batch_size_train=4, class_num=100, data_dir='/mnt/nfsdisk/jier/4_MANN/mann_hdv/data', feature_dim=512, gpu='0,1', input_channel=1, learning_rate=0.0001, log_dir='./log_binary_100_5', log_interval=100, num_shot=5, pool_query_test=15, pool_query_train=10, pool_val_train=5, pretrained_dir='None', quantization=1, test_episode=1000, test_only=0, train_episode=10000, val_episode=250, val_interval=500, val_num_train=3)
+06/21 01:53:30 PM | --------------------------------------------------
+06/21 01:53:30 PM | ========> Initialize data folders...
+06/21 01:53:30 PM | ========> Build and Initialize the Controller...
+06/21 01:53:33 PM | Controller(
+  (features): Sequential(
+    (conv1): first_conv(1, 128, kernel_size=(5, 5), stride=(1, 1), bias=False)
+    (relu1): ReLU()
+    (conv2): XNOR_BinarizeConv2d(128, 128, kernel_size=(5, 5), stride=(1, 1), bias=False)
+    (relu2): ReLU()
+    (maxpool1): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (conv3): XNOR_BinarizeConv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), bias=False)
+    (relu3): ReLU()
+    (conv4): XNOR_BinarizeConv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), bias=False)
+    (relu4): ReLU()
+    (maxpool2): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fc1): last_fc(in_features=2048, out_features=512, bias=True)
+)
+06/21 01:53:33 PM | ========> Training...
+06/21 01:54:33 PM | episode:100, loss:2.95
+06/21 01:55:28 PM | episode:200, loss:2.06
+06/21 01:56:23 PM | episode:300, loss:2.42
+06/21 01:57:18 PM | episode:400, loss:1.12
+06/21 01:58:14 PM | episode:500, loss:1.12
+06/21 01:58:14 PM | -------- Validation --------
+06/21 01:58:55 PM | Validation accuracy: 73.73%.
+06/21 01:58:55 PM | Save controller for episode: 500.
+06/21 01:58:55 PM | ----------------------------
+06/21 01:59:50 PM | episode:600, loss:0.73
+06/21 02:00:46 PM | episode:700, loss:0.77
+06/21 02:01:41 PM | episode:800, loss:0.67
+06/21 02:02:36 PM | episode:900, loss:0.63
+06/21 02:03:31 PM | episode:1000, loss:0.50
+06/21 02:03:31 PM | -------- Validation --------
+06/21 02:04:11 PM | Validation accuracy: 78.10%.
+06/21 02:04:11 PM | Save controller for episode: 1000.
+06/21 02:04:11 PM | ----------------------------
+06/21 02:05:06 PM | episode:1100, loss:0.48
+06/21 02:06:02 PM | episode:1200, loss:0.45
+06/21 02:06:57 PM | episode:1300, loss:0.67
+06/21 02:07:52 PM | episode:1400, loss:0.50
+06/21 02:08:48 PM | episode:1500, loss:0.54
+06/21 02:08:48 PM | -------- Validation --------
+06/21 02:09:29 PM | Validation accuracy: 83.59%.
+06/21 02:09:29 PM | Save controller for episode: 1500.
+06/21 02:09:29 PM | ----------------------------
+06/21 02:10:24 PM | episode:1600, loss:0.28
+06/21 02:11:20 PM | episode:1700, loss:0.41
+06/21 02:12:15 PM | episode:1800, loss:0.38
+06/21 02:13:11 PM | episode:1900, loss:0.39
+06/21 02:14:05 PM | episode:2000, loss:0.37
+06/21 02:14:05 PM | -------- Validation --------
+06/21 02:14:48 PM | Validation accuracy: 87.32%.
+06/21 02:14:48 PM | Save controller for episode: 2000.
+06/21 02:14:48 PM | ----------------------------
+06/21 02:15:43 PM | episode:2100, loss:0.34
+06/21 02:16:38 PM | episode:2200, loss:0.41
+06/21 02:17:33 PM | episode:2300, loss:0.33
+06/21 02:18:28 PM | episode:2400, loss:0.30
+06/21 02:19:24 PM | episode:2500, loss:0.28
+06/21 02:19:24 PM | -------- Validation --------
+06/21 02:20:05 PM | Validation accuracy: 89.70%.
+06/21 02:20:05 PM | Save controller for episode: 2500.
+06/21 02:20:05 PM | ----------------------------
+06/21 02:21:01 PM | episode:2600, loss:0.39
+06/21 02:21:56 PM | episode:2700, loss:0.25
+06/21 02:22:52 PM | episode:2800, loss:0.23
+06/21 02:23:48 PM | episode:2900, loss:0.22
+06/21 02:24:43 PM | episode:3000, loss:0.20
+06/21 02:24:43 PM | -------- Validation --------
+06/21 02:25:22 PM | Validation accuracy: 90.55%.
+06/21 02:25:22 PM | Save controller for episode: 3000.
+06/21 02:25:22 PM | ----------------------------
+06/21 02:26:18 PM | episode:3100, loss:0.23
+06/21 02:27:14 PM | episode:3200, loss:0.19
+06/21 02:28:08 PM | episode:3300, loss:0.28
+06/21 02:29:04 PM | episode:3400, loss:0.17
+06/21 02:29:59 PM | episode:3500, loss:0.24
+06/21 02:29:59 PM | -------- Validation --------
+06/21 02:30:41 PM | Validation accuracy: 92.81%.
+06/21 02:30:41 PM | Save controller for episode: 3500.
+06/21 02:30:41 PM | ----------------------------
+06/21 02:31:36 PM | episode:3600, loss:0.26
+06/21 02:32:32 PM | episode:3700, loss:0.31
+06/21 02:33:27 PM | episode:3800, loss:0.20
+06/21 02:34:22 PM | episode:3900, loss:0.20
+06/21 02:35:17 PM | episode:4000, loss:0.21
+06/21 02:35:17 PM | -------- Validation --------
+06/21 02:35:57 PM | Validation accuracy: 92.29%.
+06/21 02:35:57 PM | ----------------------------
+06/21 02:36:52 PM | episode:4100, loss:0.24
+06/21 02:37:47 PM | episode:4200, loss:0.15
+06/21 02:38:42 PM | episode:4300, loss:0.14
+06/21 02:39:37 PM | episode:4400, loss:0.18
+06/21 02:40:32 PM | episode:4500, loss:0.16
+06/21 02:40:32 PM | -------- Validation --------
+06/21 02:41:13 PM | Validation accuracy: 92.98%.
+06/21 02:41:13 PM | Save controller for episode: 4500.
+06/21 02:41:13 PM | ----------------------------
+06/21 02:42:08 PM | episode:4600, loss:0.26
+06/21 02:43:03 PM | episode:4700, loss:0.17
+06/21 02:43:58 PM | episode:4800, loss:0.18
+06/21 02:44:53 PM | episode:4900, loss:0.17
+06/21 02:45:47 PM | episode:5000, loss:0.18
+06/21 02:45:47 PM | -------- Validation --------
+06/21 02:46:28 PM | Validation accuracy: 93.35%.
+06/21 02:46:29 PM | Save controller for episode: 5000.
+06/21 02:46:29 PM | ----------------------------
+06/21 02:47:24 PM | episode:5100, loss:0.26
+06/21 02:48:19 PM | episode:5200, loss:0.24
+06/21 02:49:14 PM | episode:5300, loss:0.16
+06/21 02:50:10 PM | episode:5400, loss:0.18
+06/21 02:51:05 PM | episode:5500, loss:0.22
+06/21 02:51:05 PM | -------- Validation --------
+06/21 02:51:44 PM | Validation accuracy: 93.00%.
+06/21 02:51:44 PM | ----------------------------
+06/21 02:52:39 PM | episode:5600, loss:0.27
+06/21 02:53:34 PM | episode:5700, loss:0.15
+06/21 02:54:28 PM | episode:5800, loss:0.19
+06/21 02:55:23 PM | episode:5900, loss:0.18
+06/21 02:56:18 PM | episode:6000, loss:0.18
+06/21 02:56:18 PM | -------- Validation --------
+06/21 02:56:59 PM | Validation accuracy: 92.82%.
+06/21 02:56:59 PM | ----------------------------
+06/21 02:58:03 PM | episode:6100, loss:0.13
+06/21 03:07:23 PM | episode:6200, loss:0.12
+06/21 03:08:19 PM | episode:6300, loss:0.15
+06/21 03:09:13 PM | episode:6400, loss:0.20
+06/21 03:10:07 PM | episode:6500, loss:0.17
+06/21 03:10:07 PM | -------- Validation --------
+06/21 03:10:45 PM | Validation accuracy: 94.44%.
+06/21 03:10:45 PM | Save controller for episode: 6500.
+06/21 03:10:45 PM | ----------------------------
+06/21 03:11:39 PM | episode:6600, loss:0.20
+06/21 03:12:32 PM | episode:6700, loss:0.18
+06/21 03:13:26 PM | episode:6800, loss:0.11
+06/21 03:14:20 PM | episode:6900, loss:0.20
+06/21 03:15:13 PM | episode:7000, loss:0.08
+06/21 03:15:13 PM | -------- Validation --------
+06/21 03:15:53 PM | Validation accuracy: 94.80%.
+06/21 03:15:53 PM | Save controller for episode: 7000.
+06/21 03:15:53 PM | ----------------------------
+06/21 03:16:47 PM | episode:7100, loss:0.12
+06/21 03:17:41 PM | episode:7200, loss:0.15
+06/21 03:18:35 PM | episode:7300, loss:0.19
+06/21 03:19:29 PM | episode:7400, loss:0.08
+06/21 03:20:24 PM | episode:7500, loss:0.23
+06/21 03:20:24 PM | -------- Validation --------
+06/21 03:21:02 PM | Validation accuracy: 92.61%.
+06/21 03:21:02 PM | ----------------------------
+06/21 03:21:57 PM | episode:7600, loss:0.09
+06/21 03:22:51 PM | episode:7700, loss:0.11
+06/21 03:23:47 PM | episode:7800, loss:0.12
+06/21 03:24:41 PM | episode:7900, loss:0.14
+06/21 03:25:37 PM | episode:8000, loss:0.12
+06/21 03:25:37 PM | -------- Validation --------
+06/21 03:26:19 PM | Validation accuracy: 94.90%.
+06/21 03:26:19 PM | Save controller for episode: 8000.
+06/21 03:26:19 PM | ----------------------------
+06/21 03:27:14 PM | episode:8100, loss:0.17
+06/21 03:28:08 PM | episode:8200, loss:0.18
+06/21 03:29:02 PM | episode:8300, loss:0.15
+06/21 03:29:56 PM | episode:8400, loss:0.13
+06/21 03:30:50 PM | episode:8500, loss:0.13
+06/21 03:30:50 PM | -------- Validation --------
+06/21 03:31:30 PM | Validation accuracy: 93.77%.
+06/21 03:31:30 PM | ----------------------------
+06/21 03:32:24 PM | episode:8600, loss:0.19
+06/21 03:33:18 PM | episode:8700, loss:0.11
+06/21 03:34:11 PM | episode:8800, loss:0.20
+06/21 03:35:05 PM | episode:8900, loss:0.09
+06/21 03:36:00 PM | episode:9000, loss:0.11
+06/21 03:36:00 PM | -------- Validation --------
+06/21 03:36:39 PM | Validation accuracy: 93.66%.
+06/21 03:36:39 PM | ----------------------------
+06/21 03:37:34 PM | episode:9100, loss:0.13
+06/21 03:38:29 PM | episode:9200, loss:0.18
+06/21 03:39:23 PM | episode:9300, loss:0.13
+06/21 03:40:18 PM | episode:9400, loss:0.16
+06/21 03:41:12 PM | episode:9500, loss:0.16
+06/21 03:41:12 PM | -------- Validation --------
+06/21 03:41:52 PM | Validation accuracy: 95.86%.
+06/21 03:41:52 PM | Save controller for episode: 9500.
+06/21 03:41:52 PM | ----------------------------
+06/21 03:42:45 PM | episode:9600, loss:0.10
+06/21 03:43:39 PM | episode:9700, loss:0.11
+06/21 03:44:33 PM | episode:9800, loss:0.18
+06/21 03:45:26 PM | episode:9900, loss:0.11
+06/21 03:46:20 PM | episode:10000, loss:0.15
+06/21 03:46:20 PM | -------- Validation --------
+06/21 03:46:59 PM | Validation accuracy: 95.15%.
+06/21 03:46:59 PM | ----------------------------
+06/21 03:46:59 PM |  
+06/21 03:46:59 PM | ========> Training finished!
+06/21 03:46:59 PM | Training accuracy: 90.35%.
+06/21 03:46:59 PM |  
+06/21 03:46:59 PM | ========> Use the best performance Controller to test...
+06/21 03:54:50 PM | Testing accuracy: 94.32%.
