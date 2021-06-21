@@ -247,6 +247,10 @@ def main():
             val_dataloader = get_data_loader(task_train, num_per_class=args.val_num_train, split='val',
                                              shuffle=True,
                                              rotation=degrees)
+                                             
+            if (episode + 1) % args.val_interval != 0:
+                del val_dataloader
+            
             # sample data
             supports, supports_labels = support_dataloader.__iter__().next()
             queries, queries_labels = query_dataloader.__iter__().next()
@@ -263,9 +267,13 @@ def main():
             # add(rewrite) memory-augmented memory
             kv_mem = KeyValueMemory(supports_features, supports_labels)
             kv = kv_mem.kv
+            
+            del support_dataloader, query_dataloader, supports, supports_labels, supports_features, queries
 
             # predict
             prediction1 = sim_comp(kv, queries_features)
+            
+            del queries_features
 
             predict_labels1 = torch.argmax(prediction1.data, 1).cuda()
             rewards1 = [1 if predict_labels1[j] == queries_labels[j]
@@ -299,14 +307,19 @@ def main():
 
                     # calculate features
                     val_features = controller(Variable(val_images).cuda())
+                    
+                    del val_images
 
                     # quantization
                     if args.quantization == 1:
                         val_features = torch.sign(val_features)
-
+                    
                     # predict
                     prediction2 = sim_comp(kv, val_features)
                     predict_labels2 = torch.argmax(prediction2.data, 1).cuda()
+                    
+                    del val_features
+                    
                     rewards2 = [1 if predict_labels2[j] == val_labels[j]
                                 else 0 for j in range(args.class_num * args.val_num_train)]
                     total_rewards2 += np.sum(rewards2)
@@ -373,6 +386,9 @@ def main():
 
         # predict
         prediction3 = sim_comp(kv, queries_features2)
+        
+        del support_dataloader2, query_dataloader2, supports_images2, supports_features2, queries_images2, queries_features2
+        
         predict_labels3 = torch.argmax(prediction3.data, 1).cuda()
         rewards3 = [1 if predict_labels3[j] == queries_labels2[j]
                     else 0 for j in range(args.class_num * args.batch_size_test)]
