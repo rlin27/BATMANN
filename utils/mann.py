@@ -30,7 +30,7 @@ def sim_comp(kv, batch_features):
     """
     Input:
     - kv: a dictionary, see KeyValueMemory.
-    - batch_features: a matrix, which is of size [batch * mn, d].
+    - batch_features: a matrix, which is of size [batch * m, d].
     """
 
     ks = []
@@ -39,23 +39,22 @@ def sim_comp(kv, batch_features):
         ks.append(k)
         vs.append(v)
     ks = torch.stack(ks).cuda()  # a matrix, which is of size [mn, d]
-    vs = torch.stack(vs).float().cuda()  # a matrix, which is of size [mn, mn] (why not [mn, m], m is the number of
-    # class)
+    vs = torch.stack(vs).float().cuda()  # a matrix, which is of size [mn, m]
 
     # Cosine Similarity
-    inner_product = torch.matmul(batch_features, ks.t())  # [batch * mn, mn]
-    ks_norm = torch.norm(ks, dim=1).unsqueeze(0)  # ks: [mn, d], ks_norm: [1,mn]
-    feature_norm = torch.norm(batch_features, dim=1).unsqueeze(1)  # [batch * mn, 1]
-    norm_product = ks_norm * feature_norm # [batch *mn, mn]
+    inner_product = torch.matmul(batch_features, ks.t())  # [batch * m, mn]
+    ks_norm = torch.norm(ks, dim=1).unsqueeze(0)  # ks: [mn, d], ks_norm: [1, mn]
+    feature_norm = torch.norm(batch_features, dim=1).unsqueeze(1)  # [batch * m, 1]
+    norm_product = ks_norm * feature_norm  # [batch * m, mn]
     K = torch.squeeze(inner_product / (norm_product + 1e-8))
 
     # Calculating softabs
     K_exp = softabs(K)
-    w = K_exp / torch.sum(K_exp, 1, keepdim=True)  # [batch * mn, mn]
+    w = K_exp / torch.sum(K_exp, 1, keepdim=True)  # [batch * m, mn]
 
     # normalization
     w = (w - w.mean([0, 1], keepdim=True)) / w.std([0, 1], keepdim=True)
 
-    ws = torch.matmul(w, vs)
+    ws = torch.matmul(w, vs)  # [batch * m, m]
 
     return ws
