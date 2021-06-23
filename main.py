@@ -11,8 +11,11 @@ import math
 import argparse
 import random
 import time, datetime
+import os
+import shutil
 
 from utils.mann import *
+from utils.mann_approx import *
 from data.dataset import *
 from data.data_loading import *
 from model.controller import *
@@ -137,11 +140,18 @@ parser.add_argument(
 
 # quantizatoin
 parser.add_argument(
-    '--quantization',
+    '--quantization_learn',
     type=int,
     default=0,
     choices={0, 1},
     help='Binarize the Controller or not.')
+
+parser.add_argument(
+    '--quantization_infer',
+    type=int,
+    default=0,
+    choices={0, 1},
+    help='Binarize the features or not.')
 
 # test pretrain or not
 parser.add_argument(
@@ -156,6 +166,28 @@ parser.add_argument(
     type=str,
     default=None,
     help='The path to the pretrained ckpt.')
+
+# choose the scheme to calculate similarity
+parser.add_argument(
+    '--sim_cal',
+    type=str,
+    default='softabs',
+    choices={'cos_softabs', 'cos_softmax', 'dot_abs'},
+    help='The scheme to calculate similarity.')
+
+# binary or bipolar
+parser.add_argument(
+    'binary_id',
+    type=int,
+    default=1,
+    choices={1, 2},
+    help='choose binary (binary-1, {-1, 1}) or bipolar (binary-2, {0, 1}).')
+
+# resume
+parser.add_argument(
+    '--resume',
+    action='store_true',
+    help='whether continue training from the same directory', )
 
 # gpu
 parser.add_argument(
@@ -204,7 +236,8 @@ def main():
 
     # init the controller ...
     logger.info("========> Build and Initialize the Controller...")
-    controller = Controller(num_in_channels=args.input_channel, feature_dim=args.feature_dim, quant=args.quantization)
+    controller = Controller(num_in_channels=args.input_channel, feature_dim=args.feature_dim,
+                            quant=args.quantization_learn)
     logger.info(controller)
     controller.cuda()
     if len(args.gpu) > 1:
@@ -221,18 +254,40 @@ def main():
         # build graph
         logger.info("========> Training...")
 
-        last_accuracy = 0.0
+        best_accuracy = 0.0
 
         # loss function
         criterion = nn.CrossEntropyLoss()
         criterion = criterion.cuda()
 
         total_rewards1 = 0
+        start_episode = 0
+
+        # resume
+        if args.resume:
+            logger.info('========> Loading checkpoint {} ...'.format(args.pretrained_dir))
+            ckpt = torch.load(args.pretrained_dir)
+            start_episode = ckpt['episode'] + 1
+            best_accuracy = ckpt['best_acc']
+
+            # deal with the single-multi GPU problem
+            new_state_dic = OrderedDict()
+            tmp_ckpt = ckpt['state_dict']
+            if len(args.gpu) > 1:
+                for k, v in tmp_ckpt.items():
+                    new_state_dic['module.' + k.replace('module.', '')] = v
+            else:
+                for k, v in tmp_ckpt.items():
+                    new_state_dic[k.replace('module.', '')] = v
+
+            controller.load_state_dict(new_state_dic)
+            logger.info('loaded checkpoint {} episode = {}', format(args.pretrained_dir, start_episode))
 
         ######################
         #     Train
         ######################
-        for episode in range(args.train_episode):
+        episode = start_episode
+        while episode < args.train_episode:
 
             # init dataset
             # sample_dataloader: obtain previous samples for compare
@@ -247,10 +302,10 @@ def main():
             val_dataloader = get_data_loader(task_train, num_per_class=args.val_num_train, split='val',
                                              shuffle=True,
                                              rotation=degrees)
-                                             
+
             if (episode + 1) % args.val_interval != 0:
                 del val_dataloader
-            
+
             # sample data
             supports, supports_labels = support_dataloader.__iter__().next()
             queries, queries_labels = query_dataloader.__iter__().next()
@@ -267,12 +322,15 @@ def main():
             # add(rewrite) memory-augmented memory
             kv_mem = KeyValueMemory(supports_features, supports_labels)
             kv = kv_mem.kv
-            
+
             del support_dataloader, query_dataloader, supports, supports_labels, supports_features, queries
 
             # predict
-            prediction1 = sim_comp(kv, queries_features)
-            
+            if args.sim_cal == 'cos_softabs':
+                prediction1 = sim_comp(kv, queries_features)
+            elif args.sim_cal == 'cos_softmax':
+                prediction1 = sim_comp_softmax(kv, queries_features)
+
             del queries_features
 
             predict_labels1 = torch.argmax(prediction1.data, 1).cuda()
@@ -307,19 +365,23 @@ def main():
 
                     # calculate features
                     val_features = controller(Variable(val_images).cuda())
-                    
+
                     del val_images
 
                     # quantization
                     if args.quantization == 1:
                         val_features = torch.sign(val_features)
-                    
+
                     # predict
-                    prediction2 = sim_comp(kv, val_features)
+                    if args.sim_cal == 'cos_softabs':
+                        prediction2 = sim_comp(kv, val_features)
+                    elif args.sim_cal == 'cos_softmax':
+                        prediction2 = sim_comp_softmax(kv, val_features)
+
                     predict_labels2 = torch.argmax(prediction2.data, 1).cuda()
-                    
+
                     del val_features
-                    
+
                     rewards2 = [1 if predict_labels2[j] == val_labels[j]
                                 else 0 for j in range(args.class_num * args.val_num_train)]
                     total_rewards2 += np.sum(rewards2)
@@ -328,12 +390,19 @@ def main():
                 logger.info('Validation accuracy: {:.2f}%.'.format(val_accuracy * 100))
 
                 # save the best performance controller
-                if val_accuracy > last_accuracy:
-                    torch.save({'state_dict': controller.state_dict()}, "%s/model_best.pth" % args.log_dir)
+                is_best = False
+                if val_accuracy > best_accuracy:
+                    is_best = True
+                    best_accuracy = val_accuracy
                     logger.info('Save controller for episode: {}.'.format(episode + 1))
-                    last_accuracy = val_accuracy
                 logger.info('----------------------------')
-        
+                save_checkpoint({
+                    'episode': episode,
+                    'state_dict': controller.state_dict(),
+                    'best_acc': best_accuracy,
+                    'optimizer': optimizer.state_dict(),
+                }, is_best, args.log_dir)
+
             del kv_mem
 
         train_accuracy = total_rewards1 / 1.0 / (args.train_episode * args.class_num * args.batch_size_train)
@@ -345,16 +414,16 @@ def main():
     ######################
     #        Test
     ######################
+    total_rewards3 = 0
+
     if args.test_only == 0:
         # Test (Training finished)
-        total_rewards3 = 0
         logger.info('========> Use the best performance Controller to test...')
-        ckpt = torch.load(os.path.join(args.log_dir, 'model_best.pth'))
+        ckpt = torch.load(os.path.join(args.log_dir, 'model_best.pth.tar'))
         controller.load_state_dict(ckpt['state_dict'])
 
     if args.test_only == 1:
         # Test (Use pretrained parameters)
-        total_rewards3 = 0
         logger.info('========> Use a pretrained Controller to test...')
         ckpt = torch.load(args.pretrained_dir)
         controller.load_state_dict(ckpt['state_dict'])
@@ -377,23 +446,30 @@ def main():
         queries_features2 = controller(Variable(queries_images2).cuda())
 
         # quantization
-        if args.quantization == 1:
-            supports_features2 = torch.sign(supports_features2)
+        if args.quantization_infer == 1:
+            if args.binary_id == 1:  # {-1, 1}
+                supports_features2 = torch.sign(supports_features2)
+                queries_features2 = torch.sign(queries_features2)
+            elif args.binary_id == 2:  # {0, 1}
+                supports_features2 = torch.sign(supports_features2)
+                supports_features2 = (supports_features2 + 1) / 2
+                queries_features2 = torch.sign(queries_features2)
+                queries_features2 = (queries_features2 + 1) / 2
 
         # add(rewrite) memory-augmented memory
         kv_mem = KeyValueMemory(supports_features2, supports_labels2)
         kv = kv_mem.kv
 
-        # predict
-        prediction3 = sim_comp(kv, queries_features2)
-        
+        # predict (approx)
+        prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
+
         del support_dataloader2, query_dataloader2, supports_images2, supports_features2, queries_images2, queries_features2
-        
+
         predict_labels3 = torch.argmax(prediction3.data, 1).cuda()
         rewards3 = [1 if predict_labels3[j] == queries_labels2[j]
                     else 0 for j in range(args.class_num * args.batch_size_test)]
         total_rewards3 += np.sum(rewards3)
-        
+
         del kv_mem
 
     test_accuracy = total_rewards3 / 1.0 / (args.test_episode * args.class_num * args.batch_size_test)
