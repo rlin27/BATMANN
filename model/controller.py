@@ -2,17 +2,20 @@ import math
 from collections import OrderedDict
 import torch
 import torch.nn as nn
-from quant.binary_module import *
+from quant.XNOR_module import *
+from quant.RBNN_modules import *
 
 
 class Controller(nn.Module):
     """ The CNN as a controller for the MANN architecture. """
 
-    def __init__(self, num_in_channels=3, feature_dim=512, quant=0):
+    def __init__(self, num_in_channels=3, feature_dim=512, quant='No', rotation_update=1, a32=1):
         super(Controller, self).__init__()
+        self.rotation_update = rotation_update
+        self.a32 = a32
 
         # Define the network in the full-precision version
-        if quant == 0:
+        if quant == 'No':
             # CONV layer
             self.features = nn.Sequential(OrderedDict([
                 ('conv1', nn.Conv2d(num_in_channels, 128, 5)),
@@ -32,8 +35,8 @@ class Controller(nn.Module):
             # Initialize weights
             self._init_weights()
 
-        # Define the network in the binary version
-        if quant == 1:
+        # Define the network in the binary version (XNOR)
+        if quant == 'XNOR':
             # CONV layer
             conv_layer = XNOR_BinarizeConv2d
             self.features = nn.Sequential(OrderedDict([
@@ -51,7 +54,30 @@ class Controller(nn.Module):
 
             # Last FC layer
             self.add_module('fc1', last_fc(2048, feature_dim))
-            
+
+            # Initialize weights
+            self._init_weights()
+
+        # Define the network in the binary version (RBNN)
+        if quant == 'RBNN':
+            # CONV layer
+            RBNN_conv2d = BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32)
+            self.features = nn.Sequential(OrderedDict([
+                ('conv1', nn.Conv2d(num_in_channels, 128, 5)),
+                ('relu1', nn.ReLU()),
+                ('conv2', RBNN_conv2d(128, 128, 5)),
+                ('relu2', nn.ReLU()),
+                ('maxpool1', nn.MaxPool2d(2, stride=2)),
+                ('conv3', RBNN_conv2d(128, 128, 3)),
+                ('relu3', nn.ReLU()),
+                ('conv4', RBNN_conv2d(128, 128, 3)),
+                ('relu4', nn.ReLU()),
+                ('maxpool2', nn.MaxPool2d(2, stride=2)),
+            ]))
+
+            # Last FC layer
+            self.add_module('fc1', nn.Linear(2048, feature_dim))
+
             # Initialize weights
             self._init_weights()
 
