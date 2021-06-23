@@ -58,7 +58,7 @@ def sim_comp_approx(kv, batch_features, binary_id=1):
     # Dot Similarity
     # Case 1: called bipolar in the Nat Comm paper (feature vectors only contain {-1, 1})
     if binary_id == 1:
-        w = 1 / len(batch_features.size(1)) * torch.matmul(batch_features, ks.t())  # [batch * m, mn]
+        w = 1 / batch_features.size(1) * torch.matmul(batch_features, ks.t())  # [batch * m, mn]
 
     # Case 2: called binary in the Nat Comm paper (feature vectors only contain {0, 1})
     elif binary_id == 2:
