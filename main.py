@@ -19,7 +19,7 @@ from utils.mann_approx import *
 from data.dataset import *
 from data.data_loading import *
 from model.controller import *
-from quant.binary_module import *
+from quant.XNOR_module import *
 
 # argparse
 parser = argparse.ArgumentParser('MANN for Few-Shot Learning')
@@ -141,9 +141,9 @@ parser.add_argument(
 # quantizatoin
 parser.add_argument(
     '--quantization_learn',
-    type=int,
-    default=0,
-    choices={0, 1},
+    type=str,
+    default='No',
+    choices={'No', 'XNOR', 'RBNN'},
     help='Binarize the Controller or not.')
 
 parser.add_argument(
@@ -152,6 +152,21 @@ parser.add_argument(
     default=0,
     choices={0, 1},
     help='Binarize the features or not.')
+
+# RBNN setting
+parser.add_argument(
+    '--rotation_update',
+    default=1,
+    type=int,
+    metavar='N',
+    help='interval of updating rotation matrix (default:1)')
+
+parser.add_argument(
+    '--a32',
+    default=1,
+    type=int,
+    choices={0, 1},
+    help='w1a32')
 
 # test pretrain or not
 parser.add_argument(
