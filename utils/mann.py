@@ -1,5 +1,17 @@
 import torch.nn.functional as F
 import torch
+import os
+import shutil
+
+
+def save_checkpoint(state, is_best, save):
+    if not os.path.exists(save):
+        os.makedirs(save)
+    filename = os.path.join(save, 'checkpoint.path.tar')
+    torch.save(state, filename)
+    if is_best:
+        best_filename = os.path.join(save, 'model_best.pth.tar')
+        shutil.copyfile(filename, best_filename)
 
 
 class KeyValueMemory(object):
