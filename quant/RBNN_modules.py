@@ -8,8 +8,8 @@ from scipy.stats import ortho_group
 
 class BinarizeConv2d(nn.Conv2d):
 
-    def __init__(self, rotation_update, a32):
-        super(BinarizeConv2d, self).__init__()
+    def __init__(self, rotation_update, a32, *kargs, **kwargs):
+        super(BinarizeConv2d, self).__init__(*kargs, **kwargs)
         self.k = torch.tensor([10.]).float()
         self.t = torch.tensor([0.1]).float()
         self.epoch = -1
