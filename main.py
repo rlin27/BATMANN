@@ -192,7 +192,7 @@ parser.add_argument(
 
 # binary or bipolar
 parser.add_argument(
-    'binary_id',
+    '--binary_id',
     type=int,
     default=1,
     choices={1, 2},
@@ -302,7 +302,7 @@ def main():
         #     Train
         ######################
         episode = start_episode
-        while episode < args.train_episode:
+        for episode in range(args.train_episode):
 
             # init dataset
             # sample_dataloader: obtain previous samples for compare
@@ -331,7 +331,7 @@ def main():
             queries_features = controller(Variable(queries).cuda())
 
             # quantization
-            if args.quantization == 1:
+            if args.quantization_learn == 1:
                 supports_features = torch.sign(supports_features)
 
             # add(rewrite) memory-augmented memory
@@ -384,7 +384,7 @@ def main():
                     del val_images
 
                     # quantization
-                    if args.quantization == 1:
+                    if args.quantization_learn == 1:
                         val_features = torch.sign(val_features)
 
                     # predict
