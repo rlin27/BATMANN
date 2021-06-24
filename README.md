@@ -48,9 +48,14 @@ python main.py \
 --val_interval [Number of intrvals to do validation.] \
 --test_episode [Number of episode during inference.] \
 --learning_rate [Initial learning rate for the optimizer.] \
---quantization [Do binarized training or not.] \
+--quantization_learn [Do binarized training in learning phase or not.] \
+--quantization_infer [Do binarized training in inference phase or not.] \
+--rotation_update [Argument for RBNN] \
+--a32 [Argument for RBNN] \
 --test_only [Use pretrained parameters to do inference directly or not.] \
 --pretrained_dir [The path to the pretrained parameters.] \
+--sim_cal [Choose cos or dot similarity] \
+--binary_id [Bipolar or Binary] \
 --gpu [ID of the GPU to use]
 ```
 
@@ -70,53 +75,66 @@ python main.py \
 --test_episode [Number of episode during inference.] \
 --quantization [Do binarized training or not.] \
 --test_only [Use pretrained parameters to do inference directly or not.] \
+--quantization_learn [Do binarized training in learning phase or not.] \
+--quantization_infer [Do binarized training in inference phase or not.] \
+--rotation_update [Argument for RBNN] \
+--a32 [Argument for RBNN] \
+--test_only [Use pretrained parameters to do inference directly or not.] \
 --pretrained_dir [The path to the pretrained parameters.] \
+--sim_cal [Choose cos or dot similarity] \
+--binary_id [Bipolar or Binary] \
 --gpu [ID of the GPU to use]
 ```
 
 ## Experimental Results
 For clarification, we use the table below to show the setting details of different experiments. **The upper and lower tables are the details for learning and inference phases, respectively.** Binary-1 means the elements are selected in {-1, 1}. On the other hand, Binary-2 means the element only contains 0 and 1.
 
-| **Learning** Settings | 1<span id="1"></span> | 2<span id="2"></span> | 3<span id="3"></span> |
-|:----:|:----:|:----:|:-----:|
-| (Similarity) Cosine | √ | √ | √ |
-| (Similarity) Dot | | | |
-| (Sharpening function) Regular abs  | | | |
-| (Sharpening function) Softabs| √ | √ | √ |
-| (Controller) Full-precision | √ | | |
-| (Controller) Binary-1 |  | √ | |
-| (Controller) Binary-2 | | | √ |
-| (Key vectors) Full-precision | √ | | |
-| (Key vectors) Binary-1 | | √ | |
-| (key vectors) Binary-2 | | | √ |
+| **Learning** Settings | Options | 1<span id="1"></span> | 2<span id="2"></span> | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|:---:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|:----:|:----:|:----:|
+| Controller | Full-precision | √ | | √ | √ | √ | √ |
+| | XNOR |  | √ | | | | | √ | √ |
+| | RBNN | | | | | | | | | √ | √ |
+| Sharpening function | Softabs | √ | √ | √ | √ | | | √ | | √ |
+| | softmax  | | | | | √ | √ | | √ | | √ |
+| Similarity | Cosine | √ | √ | √ | √ | √ | √ | √ | √ | √ | √ |
+| | Dot | | | |
+| Key vectors | Full-precision | √ | | √ | √ | √ | √ |
+| | Binary-1 ({-1, 1}) | | √ | | | | | √ | √ | √ | √ |
+| | Binary-2 ({0, 1}) | | | |
 
-| **Inference** Settings | 1<span id="1"></span> | 2<span id="2"></span> | 3<span id="3"></span> |
-|:----:|:----:|:----:|:-----:|
-| (Similarity) Cosine | √ | √ | √ |
-| (Similarity) Dot | | | |
-| (Sharpening function) Regular abs  | | | |
-| (Sharpening function) Softabs| √ | √ | √ |
-| (Controller) Full-precision | √ | | |
-| (Controller) Binary-1 |  | √ | |
-| (Controller) Binary-2 | | | √ |
-| (Key vectors) Full-precision | √ | | |
-| (Key vectors) Binary-1 | | √ | |
-| (key vectors) Binary-2 | | | √ |
+| **Inference** Settings | Options | 1<span id="1"></span> | 2<span id="2"></span> | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|:---:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|:----:|:----:|:----:|
+| Similarity | Cosine | √ | √ | |
+| | Dot | | | √ | √ | √ | √ | √ | √ | √ | √ |
+| Key vectors | Full-precision | √ | | |
+| | Binary-1 ({-1, 1}) | | √ | √ | | √ | | √ | √ | √ | √ |
+| |Binary-2 ({0, 1}) | | | | √ | | √ |
 
 ### End-to-End full-precision and binarized MANN
 + The 2nd column is the results reported in the Supplementary Table II in the [Nat Comm paper](https://arxiv.org/pdf/2010.01939.pdf).
 + The 3rd column is the results obtained by our implementation. The Controller is trained in an end-to-end full-precision scheme. The weights and the features stored in the Key Memory are all in full-precision format.
 + The 4th column is the results obtained by our implemententaion. The Controller is trained in an end-to-end binarized ({-1,1}) scheme. The weights and features stored in the Key Memory are all in a binarized format ({-1,-1}). (Note: The first conv layer & the last fc layer are 8-bit, we use a sign function at the end to get the binarized outputs.)
 
-| Problem | Full-Precision ([Nat Comm](https://doi.org/10.1038/s41467-021-22364-0)) | Full-Precision[ (S1)](#1) | Binary-1[ (S2)](#2) | Binary-2[ (S3)](#3) |
-|:---:|:---:|:----:|:----:|:----:|
+| Problem | Full-Precision ([Nat Comm](https://doi.org/10.1038/s41467-021-22364-0)) | Full-Precision[ (S1)](#1) | Binary-1[ (S2)](#2) | 
+|:---:|:---:|:----:|:----:|
 | 5-way 1-shot | 97.44% | 95.25% ([ckpt](./log/log_full_precision_5_1/model_best.pth)) | 94.40% ([ckpt](./log/log_binary_5_1/model_best.pth)) |
 | 20-way 5-shot | 97.79% | 97.64% ([ckpt](./log/log_full_precision/model_best.pth)) | 95.11% ([ckpt](./log/log_binary/model_best.pth)) |
 | 100-way 5-shot | 93.97% | 95.68% ([ckpt](./log/log_full_precision_100_5/model_best.pth)) | 94.32% ([ckpt](./log/log_binary_100_5/model_best.pth)) |
 
-### 
+### Ablation Study on 20-way 5-shot Problem
+| Experiments | S3 |  S4 |  S5 |  S6 |  S7 |  S8 |  S9 |  S10 |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+| Acc. (%) | 
 
-More results will be available soon. 
+
+#### t-SNE
+
+
+#### FGSM Attack （epsilon = 0.1）
+| Experiments | S3 |  S4 |  S5 |  S6 |  S7 |  S8 |  S9 |  S10 |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+| Acc. (%) | 
+
 
 ## Acknowledgement
 This code is ispired by [LearningToCompare_FSL](https://github.com/floodsung/LearningToCompare_FSL). We thanks for this open-source implementations.
