@@ -61,16 +61,15 @@ class Controller(nn.Module):
         # Define the network in the binary version (RBNN)
         if quant == 'RBNN':
             # CONV layer
-            RBNN_conv2d = BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32)
             self.features = nn.Sequential(OrderedDict([
                 ('conv1', nn.Conv2d(num_in_channels, 128, 5)),
                 ('relu1', nn.ReLU()),
-                ('conv2', RBNN_conv2d(128, 128, 5)),
+                ('conv2', BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32, in_channels=128, out_channels=128, kernel_size=5)),
                 ('relu2', nn.ReLU()),
                 ('maxpool1', nn.MaxPool2d(2, stride=2)),
-                ('conv3', RBNN_conv2d(128, 128, 3)),
+                ('conv3', BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32, in_channels=128, out_channels=128, kernel_size=3)),
                 ('relu3', nn.ReLU()),
-                ('conv4', RBNN_conv2d(128, 128, 3)),
+                ('conv4', BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32, in_channels=128, out_channels=128, kernel_size=3)),
                 ('relu4', nn.ReLU()),
                 ('maxpool2', nn.MaxPool2d(2, stride=2)),
             ]))
