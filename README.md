@@ -89,26 +89,26 @@ python main.py \
 ## Experimental Results
 For clarification, we use the table below to show the setting details of different experiments. **The upper and lower tables are the details for learning and inference phases, respectively.** Binary-1 means the elements are selected in {-1, 1}. On the other hand, Binary-2 means the element only contains 0 and 1.
 
-| **Learning** Settings | Options | 1<span id="1"></span> | 2<span id="2"></span> | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
-|:---:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|:----:|:----:|:----:|
-| Controller | Full-precision | √ | | √ | √ | √ | √ |
-| | XNOR |  | √ | | | | | √ | √ |
-| | RBNN | | | | | | | | | √ | √ |
-| Sharpening function | Softabs | √ | √ | √ | √ | | | √ | | √ |
-| | softmax  | | | | | √ | √ | | √ | | √ |
-| Similarity | Cosine | √ | √ | √ | √ | √ | √ | √ | √ | √ | √ |
+| **Learning** Settings | Options | Nat | 1<span id="1"></span> | 2<span id="2"></span> | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|:---:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|:----:|:----:|:----:|:----:|
+| Controller | Full-precision | √ | √ | | √ | √ | √ | √ |
+| | XNOR | | | √ | | | | | √ | √ |
+| | RBNN | | | | | | | | | | √ | √ |
+| Sharpening | Softabs | √ | √ | √ | √ | √ | | | √ | | √ |
+| | softmax  | | | | | | √ | √ | | √ | | √ |
+| Similarity | Cosine | √ | √ | √ | √ | √ | √ | √ | √ | √ | √ | √ |
 | | Dot | | | |
-| Key vectors | Full-precision | √ | | √ | √ | √ | √ |
-| | Binary-1 ({-1, 1}) | | √ | | | | | √ | √ | √ | √ |
-| | Binary-2 ({0, 1}) | | | |
+| Key vectors | Full-precision |√ | √ | | √ | √ | √ | √ |
+| | Binary-1 ({-1, 1}) | | | √ | | | | | √ | √ | √ | √ |
+| | Binary-2 ({0, 1}) | | | | |
 
-| **Inference** Settings | Options | 1<span id="1"></span> | 2<span id="2"></span> | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
-|:---:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|:----:|:----:|:----:|
-| Similarity | Cosine | √ | √ | |
-| | Dot | | | √ | √ | √ | √ | √ | √ | √ | √ |
-| Key vectors | Full-precision | √ | | |
-| | Binary-1 ({-1, 1}) | | √ | √ | | √ | | √ | √ | √ | √ |
-| |Binary-2 ({0, 1}) | | | | √ | | √ |
+| **Inference** Settings | Options | Nat | 1<span id="1"></span> | 2<span id="2"></span> | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|:---:|:----:|:----:|:----:|:---:|:---:|:---:|:---:|:---:|:----:|:----:|:----:|:---:|
+| Similarity | Cosine | | √ | √ | |
+| | Dot | √ | | | √ | √ | √ | √ | √ | √ | √ | √ |
+| Key vectors | Full-precision | | √ | | |
+| | Binary-1 ({-1, 1}) | √ | | √ | √ | | √ | | √ | √ | √ | √ |
+| |Binary-2 ({0, 1}) | | | | | √ | | √ |
 
 ### End-to-End full-precision and binarized MANN
 + The 2nd column is the results reported in the Supplementary Table II in the [Nat Comm paper](https://arxiv.org/pdf/2010.01939.pdf).
@@ -124,16 +124,42 @@ For clarification, we use the table below to show the setting details of differe
 ### Ablation Study on 20-way 5-shot Problem
 | Experiments | S3 |  S4 |  S5 |  S6 |  S7 |  S8 |  S9 |  S10 |
 |:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-| Acc. (%) | 
+| Accuracy | 95.56% | 42.28% | 54.77% | 13.91% | 95.49% | 96.45% | 96.30% | 95.97% |
 
 
 #### t-SNE
+**Tips**: The same number in different figures can represent different characters in Omniglot dataset. 
 
+S3
+![](./fig/exp1.png)
+
+S4
+![](./fig/exp2.png)
+
+S5
+![](./fig/exp3.png)
+
+S6
+![](./fig/exp4.png)
+
+S7
+![](./fig/exp5.png)
+
+S8
+![](./fig/exp6.png)
+
+S9 
+![](./fig/exp7.png)
+
+S10
+![](./fig/exp8.png)
 
 #### FGSM Attack （epsilon = 0.1）
 | Experiments | S3 |  S4 |  S5 |  S6 |  S7 |  S8 |  S9 |  S10 |
 |:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
 | Acc. (%) | 
+
+More results will be avaliable soon.
 
 
 ## Acknowledgement
