@@ -3,3 +3,5 @@
 scripts/find_gpu.sh
 tsne/
 .idea/BATMANN.iml
+fgsm_debug.py
+*.pyc
