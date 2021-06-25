@@ -1,0 +1,5 @@
+.idea/other.xml
+*.pptx
+scripts/find_gpu.sh
+tsne/
+.idea/BATMANN.iml

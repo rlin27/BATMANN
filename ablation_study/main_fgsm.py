@@ -472,33 +472,21 @@ def main():
                                               rotation=degrees)  # support vectors for testing / validation
         query_dataloader2 = get_data_loader(task_test, num_per_class=args.batch_size_test, split='query', shuffle=True,
                                             rotation=degrees)  # queries for testing / validation
-
         supports_images2, supports_labels2 = support_dataloader2.__iter__().next()
         queries_images2, queries_labels2 = query_dataloader2.__iter__().next()
         queries_labels2 = queries_labels2.cuda()
-
+        
+        # grad
+        queries_images2.requires_grad = True
+        
         # calculate features
         supports_features2 = controller(Variable(supports_images2).cuda())
         queries_features2 = controller(Variable(queries_images2).cuda())
-
-        # quantization
-        if args.quantization_infer == 1:
-            if args.binary_id == 1:  # {-1, 1}
-                supports_features2 = torch.sign(supports_features2)
-                queries_features2 = torch.sign(queries_features2)
-            elif args.binary_id == 2:  # {0, 1}
-                supports_features2 = torch.sign(supports_features2)
-                supports_features2 = (supports_features2 + 1) / 2
-                queries_features2 = torch.sign(queries_features2)
-                queries_features2 = (queries_features2 + 1) / 2
-
+         
         # add(rewrite) memory-augmented memory
         kv_mem = KeyValueMemory(supports_features2, supports_labels2)
         kv = kv_mem.kv
-
-        # predict (approx)
-        prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
-
+        
         """ attack """
         def fgsm_attack(image, epsilon, data_grad):
             # Collect the element-wise sign of the data gradient
@@ -509,12 +497,30 @@ def main():
             perturbed_image = torch.clamp(perturbed_image, 0, 1)
             # Return the perturbed image
             return perturbed_image
+        # predict (approx)
+        prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
         loss = criterion(prediction3, queries_labels2.cuda())
         controller.zero_grad()
         loss.backward()
-        data_grad = queries_features2.grad.data
-        prediction3 = torch.sign(fgsm_attack(queries_features2, args.epsilon, data_grad))
+        print(queries_images2)
+        data_grad = queries_images2.grad.data
+        queries_images2 = fgsm_attack(queries_images2, args.epsilon, data_grad)
+        queries_features2 = controller(Variable(queries_images2).cuda())
         """ end """
+        
+        # quantization
+        if args.quantization_infer == 1:
+            if args.binary_id == 1:  # {-1, 1}
+                supports_features2 = torch.sign(supports_features2)
+                queries_features2 = torch.sign(queries_features2)
+            elif args.binary_id == 2:  # {0, 1}
+                supports_features2 = torch.sign(supports_features2)
+                supports_features2 = (supports_features2 + 1) / 2
+                queries_features2 = torch.sign(queries_features2)
+                queries_features2 = (queries_features2 + 1) / 2
+                
+        # predict (approx)
+        prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
 
         del support_dataloader2, query_dataloader2, supports_images2, supports_features2, queries_images2, queries_features2
 

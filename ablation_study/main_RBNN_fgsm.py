@@ -550,7 +550,33 @@ def main():
         # calculate features
         supports_features2 = controller(Variable(supports_images2).cuda())
         queries_features2 = controller(Variable(queries_images2).cuda())
-
+        
+        # add(rewrite) memory-augmented memory
+        kv_mem = KeyValueMemory(supports_features2, supports_labels2)
+        kv = kv_mem.kv
+        
+        """ attack """
+        # predict (approx)
+        prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
+        
+        def fgsm_attack(image, epsilon, data_grad):
+            # Collect the element-wise sign of the data gradient
+            sign_data_grad = data_grad.sign()
+            # Create the perturbed image by adjusting each pixel of the input image
+            perturbed_image = image + epsilon * sign_data_grad
+            # Adding clipping to maintain [0,1] range
+            perturbed_image = torch.clamp(perturbed_image, 0, 1)
+            # Return the perturbed image
+            return perturbed_image
+        loss = criterion(prediction3, queries_labels2.cuda())
+        controller.zero_grad()
+        loss.backward()
+        print(queries_features2)
+        data_grad = queries_images2.grad.data
+        queries_images2 = fgsm_attack(queries_images2, args.epsilon, data_grad)
+        queries_features2 = controller(Variable(queries_images2).cuda())
+        """ end """
+        
         # quantization
         if args.quantization_infer == 1:
             if args.binary_id == 1:  # {-1, 1}
@@ -561,31 +587,9 @@ def main():
                 supports_features2 = (supports_features2 + 1) / 2
                 queries_features2 = torch.sign(queries_features2)
                 queries_features2 = (queries_features2 + 1) / 2
-
-        # add(rewrite) memory-augmented memory
-        kv_mem = KeyValueMemory(supports_features2, supports_labels2)
-        kv = kv_mem.kv
-
+                
         # predict (approx)
         prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
-
-        """ attack """
-        def fgsm_attack(image, epsilon, data_grad):
-            # Collect the element-wise sign of the data gradient
-            sign_data_grad = data_grad.sign()
-            # Create the perturbed image by adjusting each pixel of the input image
-            perturbed_image = image + epsilon * sign_data_grad
-            # Adding clipping to maintain [0,1] range
-            perturbed_image = torch.clamp(perturbed_image, 0, 1)
-            # Return the perturbed image
-            return perturbed_image
-
-        loss = criterion(prediction3, queries_labels2.cuda())
-        controller.zero_grad()
-        loss.backward()
-        data_grad = queries_features2.grad.data
-        prediction3 = torch.sign(fgsm_attack(queries_features2, args.epsilon, data_grad))
-        """ end """
 
         del support_dataloader2, query_dataloader2, supports_images2, supports_features2, queries_images2, queries_features2
 
