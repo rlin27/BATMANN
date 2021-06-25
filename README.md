@@ -130,7 +130,7 @@ For clarification, we use the table below to show the setting details of differe
 #### t-SNE
 **Tips**: The same number in different figures can represent different characters in Omniglot dataset. 
 
-![](./fig/exp_tsne.JPG)
+![](./fig/exp_tsne.jpg)
 
 #### FGSM Attack （epsilon = 0.1）
 | Experiments | S3 |  S4 |  S5 |  S6 |  S7 |  S8 |  S9 |  S10 |
