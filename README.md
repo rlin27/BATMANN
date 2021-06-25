@@ -124,35 +124,13 @@ For clarification, we use the table below to show the setting details of differe
 ### Ablation Study on 20-way 5-shot Problem
 | Experiments | S3 |  S4 |  S5 |  S6 |  S7 |  S8 |  S9 |  S10 |
 |:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-| Accuracy | 95.56% | 42.28% | 54.77% | 13.91% | 95.49% | 96.45% | 96.30% | 95.97% |
+| Accuracy | 95.56% | 45.00% | 61.53% | 65.82% | 95.49% | 96.45% | 96.30% | 95.97% |
 
 
 #### t-SNE
 **Tips**: The same number in different figures can represent different characters in Omniglot dataset. 
 
-S3
-![](./fig/exp1.png)
-
-S4
-![](./fig/exp2.png)
-
-S5
-![](./fig/exp3.png)
-
-S6
-![](./fig/exp4.png)
-
-S7
-![](./fig/exp5.png)
-
-S8
-![](./fig/exp6.png)
-
-S9 
-![](./fig/exp7.png)
-
-S10
-![](./fig/exp8.png)
+![](./fig/exp_tsne.JPG)
 
 #### FGSM Attack （epsilon = 0.1）
 | Experiments | S3 |  S4 |  S5 |  S6 |  S7 |  S8 |  S9 |  S10 |
