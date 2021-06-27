@@ -1,0 +1,20 @@
+06/27 02:47:17 PM | args = Namespace(a32=1, batch_size_test=5, batch_size_train=5, binary_id=2, class_num=20, data_dir='/mnt/nfsdisk/jier/4_MANN/mann_hdv/data', epsilon=0.1, exp_id=41, feature_dim=512, gpu='1', input_channel=1, learning_rate=0.0001, log_dir='./log_ablation_fgsm/log_exp4_1', log_interval=100, num_shot=5, pool_query_test=15, pool_query_train=10, pool_val_train=5, pretrained_dir='/mnt/nfsdisk/rlin_/log_ablation/log_exp4/model_best.pth.tar', quantization_infer=1, quantization_learn='No', resume=False, rotation_update=1, sim_cal='cos_softmax', test_episode=1000, test_only=1, train_episode=10000, val_episode=250, val_interval=500, val_num_train=3)
+06/27 02:47:17 PM | --------------------------------------------------
+06/27 02:47:17 PM | ========> Initialize data folders...
+06/27 02:47:17 PM | ========> Build and Initialize the Controller...
+06/27 02:47:17 PM | Controller(
+  (features): Sequential(
+    (conv1): Conv2d(1, 128, kernel_size=(5, 5), stride=(1, 1))
+    (relu1): ReLU()
+    (conv2): Conv2d(128, 128, kernel_size=(5, 5), stride=(1, 1))
+    (relu2): ReLU()
+    (maxpool1): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (conv3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1))
+    (relu3): ReLU()
+    (conv4): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1))
+    (relu4): ReLU()
+    (maxpool2): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fc1): Linear(in_features=2048, out_features=512, bias=True)
+)
+06/27 02:47:17 PM | ========> Use a pretrained Controller to test...
