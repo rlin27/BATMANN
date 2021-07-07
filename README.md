@@ -144,6 +144,25 @@ For clarification, we use the table below to show the setting details of differe
 ![](./fig/exp_tsne_fgsm1.jpg)
 ![](./fig/exp_tsne_fgsm2.jpg)
 
+#### Different Sharpening Function during Training + Last FC layer (Bipolar Case)
+| | Forward | Backward | Controller | Last FC layer | Acc. (%) |
+|:---:|:---:|:---:|:---:|:---:|:----:|
+| 1 | abs | abs | XNOR | 8-bit | 96.71% |
+| 2 | abs | abs | RBNN | Full-Precision | 5.00% |
+| 3 | softabs | softabs | XNOR | Binary | 93.55% |
+| 4 | sfotabs | softabs | RBNN | Binary | 95.89% |
+| 5 | abs | abs | XNOR | Binary | 96.53% |
+| 6 | abs | abs | RBNN | Binary | 5.00% |
+| S7 | softabs | softabs | XNOR | 8-bit | 95.49% |
+| S9 | softabs | softabs | RBNN | Full-Precision | 96.30% |
+
+Observation:
++ Compare **1** and **S7**, using abs in training increase the performance of the controller for XNOR-Net.
++ Compare **1** and **5**, **3** and **S7**, using binary last FC layer will degrade the accuracy a bit for XNOR-Net.
++ Compare **3** and **5**, abs compiles better with binary FC layer at the end than softabs for XNOR-Net.
++ Compare **2** and **S9**, **6** and **4**, using abs as the sharpening function is not a good choice for RBNN, which is contrast with the first observation.
++ Compare **4** and **S9**, using binary last FC layer will degrade the accuracy a bit, which is consistente with the 2nd point.
+
 More results will be avaliable soon.
 
 ## Acknowledgement
