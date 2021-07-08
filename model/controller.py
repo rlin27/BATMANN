@@ -58,6 +58,29 @@ class Controller(nn.Module):
             # Initialize weights
             self._init_weights()
 
+        # Define the network in the binary version (XNOR) with the binary last FC
+        if quant == 'XNOR_binary_fc':
+            # CONV layer
+            conv_layer = XNOR_BinarizeConv2d
+            self.features = nn.Sequential(OrderedDict([
+                ('conv1', first_conv(num_in_channels, 128, 5)),
+                ('relu1', nn.ReLU()),
+                ('conv2', conv_layer(128, 128, 5)),
+                ('relu2', nn.ReLU()),
+                ('maxpool1', nn.MaxPool2d(2, stride=2)),
+                ('conv3', conv_layer(128, 128, 3)),
+                ('relu3', nn.ReLU()),
+                ('conv4', conv_layer(128, 128, 3)),
+                ('relu4', nn.ReLU()),
+                ('maxpool2', nn.MaxPool2d(2, stride=2)),
+            ]))
+
+            # Last FC layer
+            self.add_module('fc1', binary_last_fc(2048, feature_dim))
+
+            # Initialize weights
+            self._init_weights()
+
         # Define the network in the binary version (RBNN)
         if quant == 'RBNN':
             # CONV layer
@@ -79,6 +102,29 @@ class Controller(nn.Module):
 
             # Initialize weights
             self._init_weights()
+
+        # Define the network in the binary version (RBNN) with the binary last FC
+        if quant == 'RBNN_binary_fc':
+            # CONV layer
+            self.features = nn.Sequential(OrderedDict([
+                ('conv1', nn.Conv2d(num_in_channels, 128, 5)),
+                ('relu1', nn.ReLU()),
+                ('conv2', BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32, in_channels=128, out_channels=128, kernel_size=5)),
+                ('relu2', nn.ReLU()),
+                ('maxpool1', nn.MaxPool2d(2, stride=2)),
+                ('conv3', BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32, in_channels=128, out_channels=128, kernel_size=3)),
+                ('relu3', nn.ReLU()),
+                ('conv4', BinarizeConv2d(rotation_update=self.rotation_update, a32=self.a32, in_channels=128, out_channels=128, kernel_size=3)),
+                ('relu4', nn.ReLU()),
+                ('maxpool2', nn.MaxPool2d(2, stride=2)),
+            ]))
+
+            # Last FC layer
+            self.add_module('fc1', Binarize_last_fc(rotation_update=self.rotation_update, a32=self.a32, in_features=2048, out_features=feature_dim, bias=True))
+
+            # Initialize weights
+            self._init_weights()
+
 
     def forward(self, x):
         """ Forward pass to generate the feature vectors with required dimension. """
