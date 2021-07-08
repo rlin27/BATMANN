@@ -143,7 +143,7 @@ parser.add_argument(
     '--quantization_learn',
     type=str,
     default='RBNN',
-    choices={'RBNN'},
+    choices={'RBNN', 'RBNN_binary_fc'},
     help='Binarize the Controller or not.')
 
 parser.add_argument(
@@ -415,6 +415,8 @@ def main():
                 prediction1 = sim_comp(kv, queries_features)
             elif args.sim_cal == 'cos_softmax':
                 prediction1 = sim_comp_softmax(kv, queries_features)
+            elif args.sim_cal == 'dot_abs':
+                prediction1 = sim_comp_approx(kv, queries_features, binary_id=args.binary_id)
 
             del queries_features
 
@@ -473,6 +475,8 @@ def main():
                         prediction2 = sim_comp(kv, val_features)
                     elif args.sim_cal == 'cos_softmax':
                         prediction2 = sim_comp_softmax(kv, val_features)
+                    elif args.sim_cal == 'dot_abs':
+                        prediction2 = sim_comp_approx(kv, val_features, binary_id=args.binary_id)
 
                     predict_labels2 = torch.argmax(prediction2.data, 1).cuda()
 
