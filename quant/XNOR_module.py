@@ -24,7 +24,7 @@ class XNOR_BinarizeConv2d(nn.Conv2d):
         self.binary_func = binary_func
 
         w = self.weight  # [c_out, c_in, h, w]
-        sw = w.abs().view(w.size(0), -1).mean(-1).float().view( w.size(0), 1, 1).detach()
+        sw = w.abs().view(w.size(0), -1).mean(-1).float().view(w.size(0), 1, 1).detach()
         self.alpha = nn.Parameter(sw.cuda(), requires_grad=True)
 
     def forward(self, input):
@@ -108,3 +108,40 @@ class last_fc(nn.Linear):
         weight_q = (weight_q - restore_w).detach() + restore_w
 
         return F.linear(x, weight_q, self.bias)
+
+
+# binary last FC layer
+class binary_last_fc(nn.Linear):
+    def __init__(self, in_features, out_features, bias=True):
+        super(binary_last_fc, self).__init__(in_features, out_features, bias)
+
+        w = self.weight  # [out_features, in_features]
+        sw = w.abs().mean().float().detach()
+        self.alpha = nn.Parameter(sw.cuda(), requires_grad=True)
+   
+    def forward(self, input):
+        a0 = input
+        w = self.weight  # [out_features, in_featuers]
+
+        # normalize the weights
+        w1 = w - w.mean([1], keepdim=True)  # [out_features, 1]
+        w2 = w1 / w1.std([1], keepdim=True)  # [out_features, 1]
+
+        # normalize the input
+        a1 = a0 - a0.mean([1], keepdim=True)  # [in_features, 1]
+        a2 = a1 / a1.std([1], keepdim=True)  # [in_features, 1]
+
+        # binarize the weights
+        bw = XNOR_BinaryQuantize().apply(w2)
+
+        # binarize the input
+        ba = XNOR_BinaryQuantize_a().apply(a2)
+
+        # output
+        output = F.linear(ba, bw, self.bias)
+        output = output * self.alpha
+        
+
+        return output
+
+
