@@ -150,7 +150,7 @@ For clarification, we use the table below to show the setting details of differe
 | 1 | abs | abs | XNOR | 8-bit | 96.71% |
 | 2 | abs | abs | RBNN | Full-Precision | 5.00% |
 | 3 | softabs | softabs | XNOR | Binary | 93.55% |
-| 4 | sfotabs | softabs | RBNN | Binary | 95.89% |
+| 4 | softabs | softabs | RBNN | Binary | 95.89% |
 | 5 | abs | abs | XNOR | Binary | 96.53% |
 | 6 | abs | abs | RBNN | Binary | 5.00% |
 | S7 | softabs | softabs | XNOR | 8-bit | 95.49% |
@@ -163,7 +163,25 @@ Observation:
 + Compare **2** and **S9**, **6** and **4**, using abs as the sharpening function is not a good choice for RBNN, which is contrast with the first observation.
 + Compare **4** and **S9**, using binary last FC layer will degrade the accuracy a bit, which is consistente with the 2nd point.
 
-More results will be avaliable soon.
+## APPENDIX
+### BATMANN on MNIST
++ Training setting: 10 classes in total, each class contains 20 pics. In other words, 200 samples in total.
++ Support set: 10 classes, each class has 5 pics.
++ Query set: 10 classes, each class has 3 pics.
++ Training episode: 800.
+
+| | Forward | Backward | Controller | Last FC layer | Acc. (%) |
+|:---:|:---:|:---:|:---:|:---:|:----:|
+| A1 | abs | abs | XNOR | 8-bit | 91.38% |
+| A2 | softabs | softabs | XNOR | Binary | 91.63% |
+| A3 | abs | abs | XNOR | Binary | 91.26% |
+| A4 | softabs | softabs | XNOR | 8-bit | 75.85% |
+
+**t-SNE**
+
+There are not 10 obvious clusters (each class is supposed to have 3 samples).
+
+![](./fig/appendix_tsne.jpg)
 
 ## Acknowledgement
 This code is ispired by [LearningToCompare_FSL](https://github.com/floodsung/LearningToCompare_FSL). We thanks for this open-source implementations.
