@@ -21,6 +21,8 @@ from data.data_loading import *
 from model.controller import *
 from quant.XNOR_module import *
 
+from gpueater.gpu_eater import occupy_gpus_mem
+
 # argparse
 parser = argparse.ArgumentParser('MANN for Few-Shot Learning')
 
@@ -475,6 +477,12 @@ def main():
         # calculate features
         supports_features2 = controller(Variable(supports_images2).cuda())
         queries_features2 = controller(Variable(queries_images2).cuda())
+        
+        ### t-sne for test only
+        ks_num = queries_features2.detach().cpu().numpy()
+        vs_num = queries_labels2.detach().cpu().numpy()
+        np.save('ks-exp' + str(args.exp_id) + '.npy', ks_num)
+        np.save('vs-exp' + str(args.exp_id) + '.npy', vs_num)
 
         # quantization
         if args.quantization_infer == 1:
@@ -490,7 +498,7 @@ def main():
         # add(rewrite) memory-augmented memory
         kv_mem = KeyValueMemory(supports_features2, supports_labels2)
         kv = kv_mem.kv
-
+        
         # predict (approx)
         prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
 
@@ -501,21 +509,6 @@ def main():
                     else 0 for j in range(args.class_num * args.batch_size_test)]
         total_rewards3 += np.sum(rewards3)
 
-        #### t-sne for test only
-        if i == args.test_episode - 1:
-            ks = []
-            kv = []
-            for k, v in kv.items():
-                ks.append(k)
-                vs.append(v)
-            ks = torch.stack(ks).cuda()  # a matrix, which is of size [mn, d]
-            vs = torch.stack(vs).float().cuda()  # a matrix, which is of size [mn, m]
-            ks_num = ks.numpy()
-            vs_num = vs.numpy()
-            import numpy as np
-            np.save('ks-exp' + str(args.exp_id) + '.npy', ks_num)
-            np.save('vs-exp' + str(args.exp_id) + '.npy', vs_num)
-
         del kv_mem
 
     test_accuracy = total_rewards3 / 1.0 / (args.test_episode * args.class_num * args.batch_size_test)
@@ -523,4 +516,13 @@ def main():
 
 
 if __name__ == '__main__':
+
+    # set gpus
+    if args.gpu is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+
+    # occury gpus mem
+    occupy_gpus_mem()
+    
+    # train
     main()

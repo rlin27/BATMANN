@@ -21,6 +21,8 @@ from data.data_loading import *
 from model.controller import *
 from quant.XNOR_module import *
 
+from gpueater.gpu_eater import occupy_gpus_mem
+
 # argparse
 parser = argparse.ArgumentParser('MANN for Few-Shot Learning')
 
@@ -215,6 +217,11 @@ parser.add_argument(
 parser.add_argument(
     '--epsilon',
     type=float)
+    
+# exp-id
+parser.add_argument(
+    '--exp_id',
+    type=int)    
 
 args = parser.parse_args()
 
@@ -480,14 +487,17 @@ def main():
         queries_images2.requires_grad = True
         
         # calculate features
-        supports_features2 = controller(Variable(supports_images2).cuda())
-        queries_features2 = controller(Variable(queries_images2).cuda())
+        supports_features2 = controller(supports_images2.cuda())
+        queries_features2 = controller(queries_images2.cuda())
          
         # add(rewrite) memory-augmented memory
         kv_mem = KeyValueMemory(supports_features2, supports_labels2)
         kv = kv_mem.kv
         
         """ attack """
+        # predict (approx)
+        prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
+        
         def fgsm_attack(image, epsilon, data_grad):
             # Collect the element-wise sign of the data gradient
             sign_data_grad = data_grad.sign()
@@ -497,16 +507,19 @@ def main():
             perturbed_image = torch.clamp(perturbed_image, 0, 1)
             # Return the perturbed image
             return perturbed_image
-        # predict (approx)
-        prediction3 = sim_comp_approx(kv, queries_features2, binary_id=args.binary_id)
         loss = criterion(prediction3, queries_labels2.cuda())
         controller.zero_grad()
-        loss.backward()
-        print(queries_images2)
+        loss.backward(retain_graph=True)
         data_grad = queries_images2.grad.data
         queries_images2 = fgsm_attack(queries_images2, args.epsilon, data_grad)
         queries_features2 = controller(Variable(queries_images2).cuda())
         """ end """
+        
+        ### t-sne for test only (after attack)
+        ks_num = queries_features2.detach().cpu().numpy()
+        vs_num = queries_labels2.detach().cpu().numpy()
+        np.save('ks-exp' + str(args.exp_id) + '.npy', ks_num)
+        np.save('vs-exp' + str(args.exp_id) + '.npy', vs_num)
         
         # quantization
         if args.quantization_infer == 1:
@@ -536,4 +549,12 @@ def main():
 
 
 if __name__ == '__main__':
+
+    # set gpus
+    if args.gpu is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+
+    # occury gpus mem
+    occupy_gpus_mem()
+
     main()

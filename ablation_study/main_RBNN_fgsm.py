@@ -21,6 +21,8 @@ from data.data_loading import *
 from model.controller import *
 from quant.XNOR_module import *
 
+from gpueater.gpu_eater import occupy_gpus_mem
+
 # argparse
 parser = argparse.ArgumentParser('MANN for Few-Shot Learning')
 
@@ -254,6 +256,11 @@ parser.add_argument(
 parser.add_argument(
     '--epsilon',
     type=float)
+    
+# exp-id
+parser.add_argument(
+    '--exp_id',
+    type=int)
 
 args = parser.parse_args()
 
@@ -546,10 +553,13 @@ def main():
         supports_images2, supports_labels2 = support_dataloader2.__iter__().next()
         queries_images2, queries_labels2 = query_dataloader2.__iter__().next()
         queries_labels2 = queries_labels2.cuda()
+        
+        # requires_grad
+        queries_images2.requires_grad = True
 
         # calculate features
-        supports_features2 = controller(Variable(supports_images2).cuda())
-        queries_features2 = controller(Variable(queries_images2).cuda())
+        supports_features2 = controller(supports_images2.cuda())
+        queries_features2 = controller(queries_images2.cuda())
         
         # add(rewrite) memory-augmented memory
         kv_mem = KeyValueMemory(supports_features2, supports_labels2)
@@ -570,12 +580,17 @@ def main():
             return perturbed_image
         loss = criterion(prediction3, queries_labels2.cuda())
         controller.zero_grad()
-        loss.backward()
-        print(queries_features2)
+        loss.backward(retain_graph=True)
         data_grad = queries_images2.grad.data
         queries_images2 = fgsm_attack(queries_images2, args.epsilon, data_grad)
         queries_features2 = controller(Variable(queries_images2).cuda())
         """ end """
+        
+        ### t-sne for test only (after attack)
+        ks_num = queries_features2.detach().cpu().numpy()
+        vs_num = queries_labels2.detach().cpu().numpy()
+        np.save('ks-exp' + str(args.exp_id) + '.npy', ks_num)
+        np.save('vs-exp' + str(args.exp_id) + '.npy', vs_num)
         
         # quantization
         if args.quantization_infer == 1:
@@ -605,4 +620,12 @@ def main():
 
 
 if __name__ == '__main__':
+
+    # set gpus
+    if args.gpu is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+
+    # occury gpus mem
+    occupy_gpus_mem()
+    
     main()
