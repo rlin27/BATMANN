@@ -1,0 +1,20 @@
+CUDA_VISIBLE_DEVICES=2,3 python main_mnist.py \
+--log_dir ./log_0713/exp1 \
+--data_dir ./mnist \
+--train_path ./mnist_digit/train \
+--test_path ./mnist_digit/test \
+--input_channel 1 \
+--feature_dim 512 \
+--class_num 10 \
+--num_shot 5 \
+--num_query 3 \
+--train_episode 1000 \
+--log_interval 10 \
+--test_episode 1000 \
+--learning_rate 1e-3 \
+--quantization_learn XNOR_binary_fc \
+--quantization_infer 1 \
+--test_only 0 \
+--sim_cal dot_abs \
+--binary_id 1 \
+--gpu 2,3 \
