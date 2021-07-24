@@ -184,6 +184,7 @@ There are not 10 obvious clusters (each class is supposed to have 3 samples).
 ![](./fig/appendix_tsne.jpg)
 
 ## Acknowledgement
-This code is ispired by [LearningToCompare_FSL](https://github.com/floodsung/LearningToCompare_FSL). We thanks for this open-source implementations.
+The BATMANN codes are ispired by [LearningToCompare_FSL](https://github.com/floodsung/LearningToCompare_FSL). We simulate the performance of BATMANN on RRAM by using the toolbox [MemTorch](https://github.com/coreylammie/MemTorch). We thanks for this open-source implementations.
+
 
 
