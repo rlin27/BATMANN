@@ -34,7 +34,7 @@ class KeyValueMemory(object):
 def softabs(alpha):
     """ The sharpening function used in Nat Comm """
     beta = 10
-    sa = 1 / torch.exp(-(beta * (alpha - 0.5))) + 1 / torch.exp(-(beta * (-alpha - 0.5)))
+    sa = 1 / torch.exp(-(beta * (alpha - 0.5) + 1)) + 1 / torch.exp(-(beta * (-alpha - 0.5) + 1))
     return sa
 
 
