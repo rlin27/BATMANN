@@ -72,8 +72,8 @@ class XNOR_BinaryQuantize_a(Function):
         # import pdb; pdb.set_trace()
         input = ctx.saved_tensors
         grad_input = grad_output.clone()
-        grad_input[input.ge(1)] = 0
-        grad_input[input.le(-1)] = 0
+        grad_input[input[0].ge(1)] = 0
+        grad_input[input[1].le(-1)] = 0
         return grad_input
 
 
